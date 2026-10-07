@@ -9,7 +9,6 @@ export default function DiscoverScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
 
-  // Filter logic
   const filteredTrails = dummyTrails.filter(trail => {
     const matchesSearch = trail.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = activeFilter === 'All' || trail.difficulty === activeFilter;
@@ -25,7 +24,7 @@ export default function DiscoverScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        
+
         <View style={styles.filterRow}>
           {DIFFICULTIES.map(diff => (
             <Pressable
@@ -72,5 +71,5 @@ const styles = StyleSheet.create({
   activeChip: { backgroundColor: '#2E7D32' },
   filterText: { color: '#666', fontSize: 14, fontWeight: '500' },
   activeText: { color: '#fff' },
-  listContent: { padding: 16 }
+  listContent: { padding: 16 },
 });
