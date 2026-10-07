@@ -1,8 +1,42 @@
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { Alert, KeyboardAvoidingView, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { auth } from '../../firebaseConfig';
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleRegister = async () => {
+    if (!fullName.trim() || !email.trim() || !password.trim()) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const { user } =await createUserWithEmailAndPassword(auth, email.trim(), password);
+      router.replace('/tabs');
+
+      await updateProfile(user, {
+      displayName: fullName.trim(),
+        });
+    } catch (err) {
+      const message = err?.message || 'Unable to create account. Please try again.';
+      setError(message); 
+      //TODO replace firebase pop-up with custom alert
+      Alert.alert('Registration failed', message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -10,11 +44,37 @@ export default function RegisterScreen() {
         <Text style={styles.eyebrow}>Create account</Text>
         <Text style={styles.title}>Join TrailFinder</Text>
 
-        <TextInput style={styles.input} placeholder="Full name" placeholderTextColor="#7E8A95" />
-        <TextInput style={styles.input} placeholder="Email address" placeholderTextColor="#7E8A95" keyboardType="email-address" />
-        <TextInput style={styles.input} placeholder="Password" placeholderTextColor="#7E8A95" secureTextEntry />
+        <KeyboardAvoidingView behavior="padding">
+          <TextInput
+            style={styles.input}
+            placeholder="Full name"
+            placeholderTextColor="#7E8A95"
+            keyboardType="email-address"
+            value={fullName}
+            onChangeText={setFullName}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email address"
+            placeholderTextColor="#7E8A95"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#7E8A95"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+          {/* <TextInput style={styles.input} placeholder="Confirm password" placeholderTextColor="#7E8A95" secureTextEntry />
+          TODO Add password strength indicator */}
+        </KeyboardAvoidingView>
 
-        <Pressable style={styles.primaryButton} onPress={() => router.push('/tabs')}>
+        <Pressable style={styles.primaryButton} onPress={handleRegister}>
           <Text style={styles.primaryButtonText}>Create account</Text>
         </Pressable>
 
