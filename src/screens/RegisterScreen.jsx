@@ -18,7 +18,7 @@ export default function RegisterScreen() {
           <Text style={styles.primaryButtonText}>Create account</Text>
         </Pressable>
 
-        <Pressable style={styles.secondaryButton} onPress={() => router.push('/')}>
+        <Pressable style={styles.secondaryButton} onPress={() => router.back('/')}>
           <Text style={styles.secondaryButtonText}>Already have an account?</Text>
         </Pressable>
       </View>
