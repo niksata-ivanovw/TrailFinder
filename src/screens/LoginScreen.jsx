@@ -4,6 +4,9 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { Alert, KeyboardAvoidingView, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { auth } from '../../firebaseConfig';
 
+
+// TODO: after logging in dont allow user to go back to the login screen. Use router.replace instead of router.push
+
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -22,7 +25,7 @@ export default function LoginScreen() {
 
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      router.push('/tabs');
+      router.replace('/tabs');
     } catch (err) {
       const message = err?.message || 'Unable to sign in. Please try again.';
       setError(message);
