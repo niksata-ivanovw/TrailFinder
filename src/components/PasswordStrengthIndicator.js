@@ -1,9 +1,18 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, View, Text, StyleSheet } from 'react-native';
 import { checkPasswordStrength } from '../utils/passwordStrength';
 
 const PasswordStrengthIndicator = ({ password }) => {
   const strength = checkPasswordStrength(password);
+  const animatedStrength = useRef(new Animated.Value(strength)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedStrength, {
+      toValue: strength,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [animatedStrength, strength]);
   
   const getStrengthDetails = () => {
     switch (strength) {
@@ -17,19 +26,20 @@ const PasswordStrengthIndicator = ({ password }) => {
   };
 
   const { label, color } = getStrengthDetails();
+  const fillWidth = animatedStrength.interpolate({
+    inputRange: [0, 4],
+    outputRange: ['0%', '100%'],
+  });
 
   return (
     <View style={styles.container}>
       <View style={styles.barContainer}>
-        {[1, 2, 3, 4].map((level) => (
-          <View
-            key={level}
-            style={[
-              styles.bar,
-              { backgroundColor: strength >= level ? color : '#e0e0e0' }
-            ]}
-          />
-        ))}
+        <Animated.View
+          style={[
+            styles.barFill,
+            { width: fillWidth, backgroundColor: color }
+          ]}
+        />
       </View>
       {password.length > 0 && (
         <Text style={[styles.label, { color }]}>{label}</Text>
@@ -43,16 +53,15 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   barContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    height: 6,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 3,
+    overflow: 'hidden',
     marginBottom: 5,
   },
-  bar: {
-    borderWidth: 0,
-    height: 6,
-    flex: 1,
-    marginHorizontal: 2,
-    borderRadius: 2,
+  barFill: {
+    height: '100%',
+    borderRadius: 3,
   },
   label: {
     fontSize: 12,
