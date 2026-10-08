@@ -19,7 +19,7 @@ export default function MapTabScreen() {
 
   return (
     <View style={styles.container}>
-      <MapView style={styles.map} initialRegion={initialRegion} showsUserLocation>
+      <MapView style={styles.map} initialRegion={initialRegion} >
         <Polyline coordinates={trail.coordinates} strokeColor="#2E7D32" strokeWidth={4} />
         {trail.waypoints?.map((poi, index) => (
           <Marker
