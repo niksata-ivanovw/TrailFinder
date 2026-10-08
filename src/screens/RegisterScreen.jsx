@@ -1,20 +1,45 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { Alert, KeyboardAvoidingView, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { auth } from '../../firebaseConfig';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 
 export default function RegisterScreen() {
   const router = useRouter();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showError, setShowError] = useState(false);
+
+  useEffect(() => {
+    if (!password || !confirmPassword) {
+      setShowError(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (password !== confirmPassword) {
+        setShowError(true);
+      } else {
+        setShowError(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [password, confirmPassword]);
 
   const handleRegister = async () => {
-    if (!fullName.trim() || !email.trim() || !password.trim()) {
+    if (!fullName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       setError('Please fill in all fields.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
       return;
     }
 
@@ -25,9 +50,10 @@ export default function RegisterScreen() {
       const { user } =await createUserWithEmailAndPassword(auth, email.trim(), password);
       router.replace('/tabs');
 
-      await updateProfile(user, {
-      displayName: fullName.trim(),
-        });
+      // await updateProfile(user, {
+      // displayName: fullName.trim(),
+      //   });
+      // TODO: Add user profile update to include full name after registration; swiping back can lead to authFlow 
     } catch (err) {
       const message = err?.message || 'Unable to create account. Please try again.';
       setError(message); 
@@ -70,8 +96,21 @@ export default function RegisterScreen() {
             value={password}
             onChangeText={setPassword}
           />
-          {/* <TextInput style={styles.input} placeholder="Confirm password" placeholderTextColor="#7E8A95" secureTextEntry />
-          TODO Add password strength indicator */}
+          <PasswordStrengthIndicator password={password} />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm password"
+            placeholderTextColor="#7E8A95"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+          {showError && (
+            <Text style={{ color: '#e74c3c', fontSize: 12, marginBottom: 10 }}>
+            Passwords do not match.
+            </Text>
+          )}
+          
         </KeyboardAvoidingView>
 
         <Pressable style={styles.primaryButton} onPress={handleRegister}>
