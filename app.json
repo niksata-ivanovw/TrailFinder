@@ -14,10 +14,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.niksata.trailfinder"
     },
     "android": {
       "package": "com.niksata.trailfinder",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDfJgZJtLCeNmJ_vkunIV7RtdrleBCVefg"
+        },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -31,4 +36,5 @@
       "expo-status-bar"
     ]
   }
+}
 }

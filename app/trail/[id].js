@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import MapView, { Polyline, Marker } from 'react-native-maps';
+import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { dummyTrails } from '@/data/dummyTrails';
 
@@ -30,6 +30,7 @@ export default function TrailDetailScreen() {
   return (
     <View style={styles.container}>
       <MapView 
+        provider={PROVIDER_GOOGLE}
         style={styles.map} 
         initialRegion={initialRegion}
         showsUserLocation={hasLocationPermission} // Shows the blue dot if allowed

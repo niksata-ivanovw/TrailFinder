@@ -1,5 +1,5 @@
 import { Link } from 'expo-router';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { dummyTrails } from '@/data/dummyTrails';
 
@@ -19,7 +19,7 @@ export default function MapTabScreen() {
 
   return (
     <View style={styles.container}>
-      <MapView style={styles.map} initialRegion={initialRegion} >
+      <MapView provider={PROVIDER_GOOGLE} style={styles.map} initialRegion={initialRegion}>
         <Polyline coordinates={trail.coordinates} strokeColor="#2E7D32" strokeWidth={4} />
         {trail.waypoints?.map((poi, index) => (
           <Marker
