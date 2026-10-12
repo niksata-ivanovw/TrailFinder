@@ -11,11 +11,11 @@ export default function MapTabScreen() {
   }
 
   const initialRegion = {
-    latitude: trail.coordinates[0].latitude,
-    longitude: trail.coordinates[0].longitude,
-    latitudeDelta: 0.06,
-    longitudeDelta: 0.06,
-  };
+  "latitude": 43.2141,
+  "longitude": 27.9147,
+  "latitudeDelta": 0.0922,
+  "longitudeDelta": 0.0421
+};
 
   return (
     <View style={styles.container}>
