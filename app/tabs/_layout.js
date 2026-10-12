@@ -9,7 +9,7 @@ export default function TabLayout() {
       tabBarStyle: { backgroundColor: '#ffffff' }
     }}>
       <Tabs.Screen
-        name="index"
+        name="map"
         options={{
           title: 'Map',
           tabBarIcon: ({ color }) => <Ionicons name="map" size={24} color={color} />,
