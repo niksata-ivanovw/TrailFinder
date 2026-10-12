@@ -1,12 +1,14 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/theme';
+import styles from '@/styles/tabs-layout.styles';
 
 export default function TabLayout() {
   return (
     <Tabs backBehavior="history" screenOptions={{
       headerShown: false, // Hides the top header to leave room for the map/search bars
-      tabBarActiveTintColor: '#2E7D32', // TrailFinder green
-      tabBarStyle: { backgroundColor: '#ffffff' }
+      tabBarActiveTintColor: colors.primary,
+      tabBarStyle: styles.tabBar
     }}>
       <Tabs.Screen
         name="map"

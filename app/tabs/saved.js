@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
+import styles from '@/styles/saved.styles';
 
 export default function SavedScreen() {
   return (
@@ -7,17 +8,3 @@ export default function SavedScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5F7FA', // Light outdoor background
-  },
-  text: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  }
-});

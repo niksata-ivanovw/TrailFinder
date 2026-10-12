@@ -1,0 +1,241 @@
+import { StyleSheet } from 'react-native';
+import { colors, spacing, typography } from '@/theme';
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    padding: spacing.xl,
+    paddingBottom: spacing.huge,
+  },
+  pageTitle: {
+    color: colors.textProfileHeading,
+    fontSize: typography.heading,
+    fontWeight: '800',
+    marginBottom: spacing.xl,
+  },
+  profileCard: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: spacing.xl,
+    flexDirection: 'row',
+    padding: spacing.xl,
+    marginBottom: spacing.xxxl,
+  },
+  avatar: {
+    alignItems: 'center',
+    backgroundColor: colors.primaryPale,
+    borderRadius: spacing.xxxl + 4,
+    height: 64,
+    justifyContent: 'center',
+    marginRight: spacing.lg,
+    width: 64,
+  },
+  avatarInitial: {
+    color: colors.primary,
+    fontSize: typography.heading,
+    fontWeight: '800',
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  name: {
+    color: colors.textOnPrimary,
+    fontSize: 19,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  email: {
+    color: colors.textProfileEmail,
+    fontSize: 13,
+    marginBottom: 10,
+  },
+  memberBadge: {
+    alignSelf: 'flex-start',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: spacing.md,
+    flexDirection: 'row',
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  memberBadgeText: {
+    color: colors.primary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  sectionTitle: {
+    color: colors.textProfileSection,
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  shortcutsCard: {
+    backgroundColor: colors.surface,
+    borderRadius: spacing.lg,
+    marginBottom: 26,
+    paddingHorizontal: 14,
+  },
+  shortcut: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    minHeight: 76,
+    paddingVertical: spacing.md,
+  },
+  shortcutPressed: {
+    opacity: 0.7,
+  },
+  shortcutIcon: {
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    borderRadius: spacing.md,
+    height: 42,
+    justifyContent: 'center',
+    marginRight: spacing.md,
+    width: 42,
+  },
+  shortcutText: {
+    flex: 1,
+  },
+  shortcutTitle: {
+    color: colors.textProfile,
+    fontSize: typography.small,
+    fontWeight: '700',
+    marginBottom: 3,
+  },
+  shortcutSubtitle: {
+    color: colors.textMuted,
+    fontSize: typography.caption,
+  },
+  divider: {
+    backgroundColor: colors.divider,
+    height: StyleSheet.hairlineWidth,
+  },
+  accountCard: {
+    backgroundColor: colors.surface,
+    borderRadius: spacing.lg,
+    marginBottom: spacing.xxl,
+    paddingHorizontal: spacing.lg,
+  },
+  accountRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    minHeight: 70,
+  },
+  accountIcon: {
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    borderRadius: 11,
+    height: 38,
+    justifyContent: 'center',
+    marginRight: spacing.md,
+    width: 38,
+  },
+  accountDetails: {
+    flex: 1,
+  },
+  accountLabel: {
+    color: colors.textMuted,
+    fontSize: typography.caption,
+    marginBottom: 4,
+  },
+  accountValue: {
+    color: colors.textProfile,
+    fontSize: typography.small,
+    fontWeight: '600',
+  },
+  errorText: {
+    color: colors.danger,
+    fontSize: 13,
+    marginBottom: spacing.md,
+  },
+  signOutButton: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.dangerBorder,
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    minHeight: 52,
+  },
+  signOutButtonPressed: {
+    backgroundColor: colors.dangerPressed,
+  },
+  signOutButtonDisabled: {
+    opacity: 0.6,
+  },
+  signOutText: {
+    color: colors.danger,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  modalOverlay: {
+    alignItems: 'center',
+    backgroundColor: colors.overlay,
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.xxl,
+  },
+  confirmationCard: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: spacing.xl,
+    maxWidth: 360,
+    padding: spacing.xxl,
+    width: '100%',
+  },
+  confirmationIcon: {
+    alignItems: 'center',
+    backgroundColor: colors.dangerSurface,
+    borderRadius: spacing.xxl,
+    height: 48,
+    justifyContent: 'center',
+    marginBottom: 14,
+    width: 48,
+  },
+  confirmationTitle: {
+    color: colors.textProfile,
+    fontSize: typography.subtitle,
+    fontWeight: '800',
+    marginBottom: spacing.sm,
+  },
+  confirmationMessage: {
+    color: colors.textMuted,
+    fontSize: typography.small,
+    lineHeight: 20,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  confirmSignOutButton: {
+    alignItems: 'center',
+    backgroundColor: colors.danger,
+    borderRadius: spacing.md,
+    justifyContent: 'center',
+    minHeight: 48,
+    width: '100%',
+  },
+  confirmSignOutText: {
+    color: colors.textOnPrimary,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  cancelButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.sm,
+    minHeight: 44,
+    width: '100%',
+  },
+  cancelText: {
+    color: colors.textProfileSection,
+    fontSize: typography.small,
+    fontWeight: '600',
+  },
+});
+
+export default styles;

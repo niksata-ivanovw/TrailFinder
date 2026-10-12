@@ -1,6 +1,8 @@
-import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
+import { View, Text, Image, Pressable } from 'react-native';
 import { Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/theme';
+import styles from '@/styles/TrailCard.styles';
 
 export default function TrailCard({ trail }) {
   return (
@@ -13,15 +15,15 @@ export default function TrailCard({ trail }) {
           
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <Ionicons name="speedometer-outline" size={16} color="#666" />
+              <Ionicons name="speedometer-outline" size={16} color={colors.textSecondary} />
               <Text style={styles.statText}>{trail.difficulty}</Text>
             </View>
             <View style={styles.stat}>
-              <Ionicons name="resize-outline" size={16} color="#666" />
+              <Ionicons name="resize-outline" size={16} color={colors.textSecondary} />
               <Text style={styles.statText}>{trail.distanceMiles} mi</Text>
             </View>
             <View style={styles.stat}>
-              <Ionicons name="trending-up" size={16} color="#666" />
+              <Ionicons name="trending-up" size={16} color={colors.textSecondary} />
               <Text style={styles.statText}>{trail.elevationGainFt} ft</Text>
             </View>
           </View>
@@ -30,23 +32,3 @@ export default function TrailCard({ trail }) {
     </Link>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3, // Android shadow
-  },
-  image: { width: '100%', height: 160 },
-  content: { padding: 12 },
-  title: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  location: { fontSize: 14, color: '#666', marginTop: 4 },
-  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
-  stat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  statText: { fontSize: 12, color: '#444', fontWeight: '500' }
-});

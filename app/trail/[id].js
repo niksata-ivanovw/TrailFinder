@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { dummyTrails } from '@/data/dummyTrails';
+import { colors } from '@/theme';
+import styles from '@/styles/trail-detail.styles';
 
 export default function TrailDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -17,7 +19,7 @@ export default function TrailDetailScreen() {
     })();
   }, []);
 
-  if (!trail) return <Text style={{ padding: 20 }}>Trail not found.</Text>;
+  if (!trail) return <Text style={styles.notFound}>Trail not found.</Text>;
 
   // Calculate the center of the map based on the first coordinate
   const initialRegion = {
@@ -38,7 +40,7 @@ export default function TrailDetailScreen() {
         {/* Draw the route */}
         <Polyline
           coordinates={trail.coordinates}
-          strokeColor="#2E7D32" // TrailFinder Green
+          strokeColor={colors.mapRoute}
           strokeWidth={4}
         />
 
@@ -64,23 +66,3 @@ export default function TrailDetailScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  map: { width: '100%', height: '100%' },
-  infoCard: {
-    position: 'absolute',
-    bottom: 40,
-    alignSelf: 'center',
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    width: '90%',
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 4 },
-  stats: { fontSize: 14, color: '#666' }
-});

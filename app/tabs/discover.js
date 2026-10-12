@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { View, TextInput, FlatList, StyleSheet, Pressable, Text } from 'react-native';
+import { View, TextInput, FlatList, Pressable, Text } from 'react-native';
 import TrailCard from '@/components/TrailCard';
 import { dummyTrails } from '@/data/dummyTrails';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import styles from '@/styles/discover.styles';
 
 const DIFFICULTIES = ['All', 'Beginner', 'Intermediate', 'Expert'];
 
@@ -16,7 +18,7 @@ export default function DiscoverScreen() {
   });
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <TextInput
           style={styles.searchInput}
@@ -47,29 +49,6 @@ export default function DiscoverScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7FA' },
-  header: { padding: 16, backgroundColor: '#fff', paddingBottom: 12 },
-  searchInput: {
-    backgroundColor: '#F0F2F5',
-    padding: 12,
-    borderRadius: 8,
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  filterRow: { flexDirection: 'row', gap: 8 },
-  filterChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    backgroundColor: '#F0F2F5',
-  },
-  activeChip: { backgroundColor: '#2E7D32' },
-  filterText: { color: '#666', fontSize: 14, fontWeight: '500' },
-  activeText: { color: '#fff' },
-  listContent: { padding: 16 },
-});

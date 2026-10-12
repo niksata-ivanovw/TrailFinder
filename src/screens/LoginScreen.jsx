@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { Alert, KeyboardAvoidingView, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Pressable, Text, TextInput, View } from 'react-native';
 import { auth } from '../../firebaseConfig';
+import { colors } from '@/theme';
+import styles from '@/styles/LoginScreen.styles';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -44,7 +46,7 @@ export default function LoginScreen() {
           <TextInput
             style={styles.input}
             placeholder="Email address"
-            placeholderTextColor="#7E8A95"
+            placeholderTextColor={colors.inputPlaceholder}
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
@@ -53,7 +55,7 @@ export default function LoginScreen() {
           <TextInput
             style={styles.input}
             placeholder="Password"
-            placeholderTextColor="#7E8A95"
+            placeholderTextColor={colors.inputPlaceholder}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -73,85 +75,3 @@ export default function LoginScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#EEF7EE',
-    padding: 24,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 420,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 6,
-  },
-  eyebrow: {
-    color: '#2E7D32',
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 34,
-    fontWeight: '800',
-    color: '#1D1D1D',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#5F6B76',
-    marginBottom: 24,
-  },
-  input: {
-    backgroundColor: '#F5F7FA',
-    borderWidth: 1,
-    borderColor: '#E6EBF0',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    marginBottom: 12,
-    color: '#1D1D1D',
-  },
-  primaryButton: {
-    backgroundColor: '#2E7D32',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  primaryButtonDisabled: {
-    opacity: 0.7,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  secondaryButton: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#2E7D32',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  errorText: {
-    color: '#B42318',
-    fontSize: 13,
-    marginBottom: 12,
-  },
-});
