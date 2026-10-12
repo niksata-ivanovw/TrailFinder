@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ 
+    <Tabs backBehavior="history" screenOptions={{
       headerShown: false, // Hides the top header to leave room for the map/search bars
       tabBarActiveTintColor: '#2E7D32', // TrailFinder green
       tabBarStyle: { backgroundColor: '#ffffff' }

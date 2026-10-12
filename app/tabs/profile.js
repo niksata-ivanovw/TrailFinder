@@ -13,8 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth } from '../../firebaseConfig';
 
-// TODO when opening links in profile use stack so when going back it goes back to profile instead of discover or saved.
-
 export default function ProfileScreen() {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
