@@ -35,7 +35,10 @@ const colors = {
   strengthTransparent: 'transparent',
   overlay: 'rgba(15, 31, 20, 0.45)',
   shadow: '#000000',
-  mapRoute: '#2E7D32',
+  mapRouteBeginner: '#2E7D32',
+  mapRouteIntermediate: '#F1C40F',
+  mapRouteExpert: '#E74C3C',
+
 };
 
 export default colors;

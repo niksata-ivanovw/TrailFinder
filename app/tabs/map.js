@@ -1,11 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Text, View } from 'react-native';
 import TrailQueryState from '@/components/TrailQueryState';
 import { fetchTrails } from '@/data/trails';
 import { colors } from '@/theme';
 import styles from '@/styles/map.styles';
+
+function polylineColorHandler(difficulty) {
+  switch (difficulty) {
+    case 'Beginner':
+      return colors.mapRouteBeginner;
+    case 'Intermediate':
+      return colors.mapRouteIntermediate;
+    case 'Expert':
+      return colors.mapRouteExpert;
+    default:
+      return colors.mapRouteBeginner;
+  }
+}
 
 function isValidCoordinate(point) {
   return (
@@ -157,32 +170,16 @@ export default function MapTabScreen() {
       >
         {trailsInRegion.flatMap((trail) => {
           const coordinates = trail.coordinates.filter(isValidCoordinate);
-          const calloutDescription = [
-            trail.description,
-            trail.location,
-            trail.difficulty,
-            trail.distanceMiles != null ? `${trail.distanceMiles} mi` : null,
-          ]
-            .filter(Boolean)
-            .join(' • ');
-
-          return [
+          return (
             <Polyline
               key={`route-${trail.id}`}
               coordinates={coordinates}
-              strokeColor={colors.mapRoute}
+              strokeColor={polylineColorHandler(trail.difficulty)}
               strokeWidth={4}
               tappable
               onPress={() => openTrail(trail)}
-            />,
-            <Marker
-              key={`marker-${trail.id}`}
-              coordinate={coordinates[0]}
-              title={trail.name}
-              description={calloutDescription}
-              onCalloutPress={() => openTrail(trail)}
-            />,
-          ];
+            />
+          );
         })}
       </MapView>
 
