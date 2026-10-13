@@ -39,6 +39,58 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 - A Firebase project with Email/Password sign-in enabled
 - For native Android Google Maps: a Google Cloud project with Maps SDK for Android enabled and billing configured
 
+## 📋 Master Project Roadmap & TODO List
+
+### Phase 1: Cloud Backend & Firestore CRUD Integration
+- [ ] **Firestore Configuration**
+  - [ ] Initialize Cloud Firestore alongside Firebase Auth in your Firebase setup.
+- [ ] **Explore Screen (GET)**
+  - [ ] Replace hardcoded dummy trail data with dynamic Firestore queries.
+  - [ ] Add explicit **Loading** (`ActivityIndicator`) and **Error** UI fallback states.
+  - [ ] Attach `RefreshControl` for **Pull-to-Refresh** functionality.
+- [ ] **Trail Details Screen (GET Details)**
+  - [ ] Confirm route parameter passing (`route.params.trailId`) to display elevation, difficulty, and user reviews dynamically.
+- [ ] **Log Hike Modal & Operations (POST, PUT/PATCH, DELETE)**
+  - [ ] Build/connect the modal screen for creating new hike logs (**POST**).
+  - [ ] Add ability for users to update notes/ratings on existing logs (**PUT/PATCH**).
+  - [ ] Implement deletion functionality to remove entries from history (**DELETE**).
+
+---
+
+### Phase 2: Inputs Beyond Text & Advanced Form UX
+- [ ] **Update Log Hike Form Controls**
+  - [ ] **Slider**: Add difficulty rating input (1–5 scale).
+  - [ ] **DateTimePicker**: Add hike date selection component.
+  - [ ] **Switch**: Add "Dog-Friendly" toggle.
+- [ ] **Form Protection & Layout UX**
+  - [ ] Ensure form components are properly wrapped in `KeyboardAvoidingView` to maintain input visibility.
+  - [ ] Enforce password strength / multi-rule validation on Registration.
+
+---
+
+### Phase 3: Native Device Capabilities
+- [ ] **Choose & Implement Native Functionality**:
+  - [ ] **Option A (Sensors)**: Integrate `expo-pedometer` for real-time step tracking during hikes.
+  - [ ] **Option B (Camera)**: Integrate `expo-image-picker` allowing users to capture and attach trail photos to logs.
+  - [ ] **Option C (Location/Maps)**: Integrate `expo-location` or MapView for trailhead discovery and route plotting.
+
+---
+
+### Phase 4: Bookmarks & Profile
+- [ ] **Offline Caching & Bookmarks**
+  - [ ] Implement local storage bookmarking for favorite trails using `@react-native-async-storage/async-storage` or `expo-sqlite`.
+- [ ] **Profile Screen**
+  - [ ] Display user activity stats, saved trails list, and functional Logout button.
+
+---
+
+### Phase 5: Release Build & Project Finalization
+- [ ] **EAS Build**
+  - [ ] Build the Android package (`.apk`) using EAS (`eas build -p android --profile preview`).
+- [ ] **Documentation & Requirements Verification**
+  - [ ] Confirm at least 5 commits exist across 3 separate days in Git history.
+  - [ ] Complete `README.md` with setup instructions, functional guide, and the prominent link to the downloadable `.apk`.
+
 ## Setup
 
 1. Install the JavaScript dependencies:
