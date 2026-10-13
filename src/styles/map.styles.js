@@ -3,30 +3,25 @@ import { colors, spacing, typography } from '@/theme';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  statusContainer: { flex: 1, justifyContent: 'center', backgroundColor: colors.background },
   map: { flex: 1 },
-  infoCard: {
+  regionBadge: {
     position: 'absolute',
-    bottom: spacing.xxxl,
-    left: 18,
-    right: 18,
+    top: spacing.lg,
+    alignSelf: 'center',
+    alignItems: 'center',
     backgroundColor: colors.surface,
-    padding: spacing.lg,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
     borderRadius: spacing.lg,
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: spacing.sm },
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    elevation: 8,
+    shadowOffset: { width: 0, height: spacing.xs },
+    shadowOpacity: 0.15,
+    shadowRadius: spacing.sm,
+    elevation: 4,
   },
-  title: { fontSize: typography.subtitle, fontWeight: '700', color: colors.text, marginBottom: 4 },
-  subtitle: { fontSize: typography.small, color: colors.textMapSecondary, marginBottom: 14 },
-  button: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  buttonText: { color: colors.textOnPrimary, fontSize: 15, fontWeight: '700' },
+  regionBadgeText: { fontSize: typography.small, fontWeight: '700', color: colors.text },
+  regionHint: { marginTop: spacing.xs, fontSize: typography.small, color: colors.textSecondary },
 });
 
 export default styles;

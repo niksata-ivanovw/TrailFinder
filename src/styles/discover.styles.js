@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
   filterText: { color: colors.textSecondary, fontSize: typography.small, fontWeight: '500' },
   activeText: { color: colors.textOnPrimary },
   listContent: { padding: spacing.lg },
+  emptyListContent: { flexGrow: 1 },
 });
 
 export default styles;

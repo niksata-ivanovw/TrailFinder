@@ -3,6 +3,7 @@ import { colors, spacing, typography } from '@/theme';
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  statusContainer: { flex: 1, justifyContent: 'center', backgroundColor: colors.background },
   map: { width: '100%', height: '100%' },
   infoCard: {
     position: 'absolute',
@@ -19,6 +20,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: typography.subtitle, fontWeight: 'bold', color: colors.text, marginBottom: 4 },
   stats: { fontSize: typography.small, color: colors.textSecondary },
+  description: { marginTop: spacing.sm, fontSize: typography.small, color: colors.textSecondary },
   notFound: { padding: spacing.xl },
 });
 

@@ -1,16 +1,43 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
-import { dummyTrails } from '@/data/dummyTrails';
+import TrailQueryState from '@/components/TrailQueryState';
+import { fetchTrail } from '@/data/trails';
 import { colors } from '@/theme';
 import styles from '@/styles/trail-detail.styles';
 
 export default function TrailDetailScreen() {
   const { id } = useLocalSearchParams();
-  const trail = dummyTrails.find(t => t.id === id);
+  const trailId = Array.isArray(id) ? id[0] : id;
+  const [trail, setTrail] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [hasLocationPermission, setHasLocationPermission] = useState(false);
+
+  const loadTrail = useCallback(async () => {
+    if (!trailId) {
+      setTrail(null);
+      setError('Trail not found.');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      setTrail(await fetchTrail(trailId));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load this trail.');
+    } finally {
+      setLoading(false);
+    }
+  }, [trailId]);
+
+  useEffect(() => {
+    loadTrail();
+  }, [loadTrail]);
 
   useEffect(() => {
     (async () => {
@@ -19,7 +46,26 @@ export default function TrailDetailScreen() {
     })();
   }, []);
 
-  if (!trail) return <Text style={styles.notFound}>Trail not found.</Text>;
+  if (loading || error || !trail) {
+    return (
+      <View style={styles.statusContainer}>
+        <TrailQueryState
+          loading={loading}
+          error={error}
+          onRetry={loadTrail}
+          emptyMessage="Trail not found."
+        />
+      </View>
+    );
+  }
+
+  if (!Array.isArray(trail.coordinates) || trail.coordinates.length === 0) {
+    return (
+      <View style={styles.statusContainer}>
+        <TrailQueryState error="This trail does not have a route yet." />
+      </View>
+    );
+  }
 
   // Calculate the center of the map based on the first coordinate
   const initialRegion = {
@@ -31,18 +77,14 @@ export default function TrailDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <MapView 
+      <MapView
         provider={PROVIDER_GOOGLE}
-        style={styles.map} 
+        style={styles.map}
         initialRegion={initialRegion}
         showsUserLocation={hasLocationPermission} // Shows the blue dot if allowed
       >
         {/* Draw the route */}
-        <Polyline
-          coordinates={trail.coordinates}
-          strokeColor={colors.mapRoute}
-          strokeWidth={4}
-        />
+        <Polyline coordinates={trail.coordinates} strokeColor={colors.mapRoute} strokeWidth={4} />
 
         {/* Plot Waypoints */}
         {trail.waypoints?.map((poi, index) => (
@@ -62,6 +104,11 @@ export default function TrailDetailScreen() {
         <Text style={styles.stats}>
           {trail.difficulty} • {trail.distanceMiles} mi • {trail.elevationGainFt} ft gain
         </Text>
+        {(trail.description || trail.location || trail.surfaceType) && (
+          <Text style={styles.description}>
+            {[trail.description, trail.location, trail.surfaceType].filter(Boolean).join(' • ')}
+          </Text>
+        )}
       </View>
     </View>
   );

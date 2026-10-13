@@ -1,6 +1,6 @@
 # TrailFinder
 
-TrailFinder is an Expo and React Native app for browsing outdoor routes around Varna, Bulgaria. It is currently a prototype: trail data and map tracks are illustrative, and saved-trail functionality is not yet implemented.
+TrailFinder is an Expo and React Native app for browsing outdoor routes around Varna, Bulgaria. Trail cards and maps load from Cloud Firestore; route accuracy depends on the data you add. Saved-trail functionality is not yet implemented.
 
 ## Current features
 
@@ -8,16 +8,15 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 - Persistent Firebase Auth sessions using React Native AsyncStorage.
 - Startup routing that restores the auth state, then shows the login screen or opens the app.
 - Map, Discover, Saved, and Profile tabs.
-- A featured map with a route line and waypoint markers.
-- Discover trail cards with name search and difficulty filters.
-- Trail detail maps with route lines and waypoint markers.
+- A map showing routes that intersect the current viewport, with clickable trail routes and markers that open trail details.
+- Firestore-backed Discover trail cards with name search, difficulty filters, loading/error states, and pull-to-refresh.
+- Firestore-backed trail detail maps with route lines and waypoint markers.
 - Profile details, shortcuts to Saved and Discover, and sign-out confirmation.
-- Ten dummy trails around Varna, with varied sample routes, waypoints, difficulty, and distances.
 - Shared color, spacing, and typography tokens in `src/theme/`; styles are kept in `src/styles/`.
 
 ### Prototype limitations
 
-- All trail coordinates and waypoint positions are sample data, not GPS tracks for navigation.
+- Firestore trail coordinates and waypoint positions must be verified before use for navigation. `src/data/dummyTrails.js` is retained only as illustrative sample data and is no longer read by app screens.
 - Elevation gains are estimates.
 - The Saved tab is a placeholder; bookmarking and offline maps are not implemented.
 - Featured trail images are remote Unsplash URLs and require an internet connection.
@@ -28,7 +27,7 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 - Expo Router
 - `react-native-maps`
 - Expo Location
-- Firebase JavaScript SDK (Authentication)
+- Firebase JavaScript SDK (Authentication and Cloud Firestore)
 - React Native AsyncStorage for Firebase Auth persistence
 
 ## Prerequisites
@@ -37,19 +36,20 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 - npm
 - For Android emulator development: Android Studio, Android SDK, and a running emulator
 - A Firebase project with Email/Password sign-in enabled
+- Cloud Firestore enabled in that Firebase project, with read access configured for the signed-in app users
 - For native Android Google Maps: a Google Cloud project with Maps SDK for Android enabled and billing configured
 
 ## 📋 Master Project Roadmap & TODO List
 
 ### Phase 1: Cloud Backend & Firestore CRUD Integration
-- [ ] **Firestore Configuration**
-  - [ ] Initialize Cloud Firestore alongside Firebase Auth in your Firebase setup.
-- [ ] **Explore Screen (GET)**
-  - [ ] Replace hardcoded dummy trail data with dynamic Firestore queries.
-  - [ ] Add explicit **Loading** (`ActivityIndicator`) and **Error** UI fallback states.
-  - [ ] Attach `RefreshControl` for **Pull-to-Refresh** functionality.
-- [ ] **Trail Details Screen (GET Details)**
-  - [ ] Confirm route parameter passing (`route.params.trailId`) to display elevation, difficulty, and user reviews dynamically.
+- [x] **Firestore Configuration**
+  - [x] Initialize Cloud Firestore alongside Firebase Auth in your Firebase setup.
+- [x] **Explore Screen (GET)**
+  - [x] Replace hardcoded dummy trail data with dynamic Firestore queries.
+  - [x] Add explicit **Loading** (`ActivityIndicator`) and **Error** UI fallback states.
+  - [x] Attach `RefreshControl` for **Pull-to-Refresh** functionality.
+- [x] **Trail Details Screen (GET Details)**
+  - [x] Read the trail document ID from the `/trail/[id]` route and load trail details dynamically.
 - [ ] **Log Hike Modal & Operations (POST, PUT/PATCH, DELETE)**
   - [ ] Build/connect the modal screen for creating new hike logs (**POST**).
   - [ ] Add ability for users to update notes/ratings on existing logs (**PUT/PATCH**).
@@ -120,6 +120,36 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 
 4. Configure Google Maps for Android in `app.json` under `expo.android.config.googleMaps.apiKey`. Enable **Maps SDK for Android** in Google Cloud, enable billing, and restrict the key to the app's Android package (`com.niksata.trailfinder`) and the SHA-1 certificate fingerprint for the build you install. Restrict the key to the APIs it needs and do not commit an unrestricted key.
 
+## Firestore trail documents
+
+Create a `trails` collection in Cloud Firestore. Each document ID is used as the trail's route ID. Trail documents should include the fields used by the cards and maps:
+
+```json
+{
+  "name": "Example Trail",
+  "location": "Varna, Bulgaria",
+  "description": "A scenic route through the coastal park.",
+  "difficulty": "Beginner",
+  "surfaceType": "Dirt",
+  "distanceMiles": 3.2,
+  "elevationGainFt": 120,
+  "imageUrl": "https://example.com/trail.jpg",
+  "coordinates": [
+    { "latitude": 43.205, "longitude": 27.9215 }
+  ],
+  "waypoints": [
+    {
+      "type": "trailhead",
+      "title": "Trail entrance",
+      "latitude": 43.205,
+      "longitude": 27.9215
+    }
+  ]
+}
+```
+
+The Map tab fetches trails from the `trails` collection and filters their route coordinates against the currently visible map region. Tap a route line to open its detail screen, or tap a trail marker and then its callout. The optional `description` field is shown with the trail location and surface type on the detail screen. Firestore reads are implemented in `src/data/trails.js`. Configure Firestore Security Rules to allow the intended reads; do not leave the database in test mode for production.
+
 ## Run on Android
 
 Start an Android emulator, then build, install, and launch the development app:
@@ -155,7 +185,8 @@ app/                         Expo Router routes and layouts
   trail/[id].js              Trail detail map
 src/
   components/                Shared UI components
-  data/dummyTrails.js        Illustrative Varna trail data
+  data/trails.js              Firestore trail queries
+  data/dummyTrails.js         Illustrative sample data (unused by app screens)
   screens/                   Login and registration screens
   styles/                    Screen and component StyleSheet modules
   theme/                     Shared colors, spacing, and typography
