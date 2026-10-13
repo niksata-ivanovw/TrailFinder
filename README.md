@@ -50,10 +50,15 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
   - [x] Attach `RefreshControl` for **Pull-to-Refresh** functionality.
 - [x] **Trail Details Screen (GET Details)**
   - [x] Read the trail document ID from the `/trail/[id]` route and load trail details dynamically.
+- [ ] Better UI for the trails on the map
+  - [ ] Dont show the red pinpoint
+  - [ ] Better styling of the track
+- [ ] Fix Dummy tracks' coordinates so they are realistic
 - [ ] **Log Hike Modal & Operations (POST, PUT/PATCH, DELETE)**
   - [ ] Build/connect the modal screen for creating new hike logs (**POST**).
   - [ ] Add ability for users to update notes/ratings on existing logs (**PUT/PATCH**).
   - [ ] Implement deletion functionality to remove entries from history (**DELETE**).
+
 
 ---
 
