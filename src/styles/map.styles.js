@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
   },
   regionBadgeText: { fontSize: typography.small, fontWeight: '700', color: colors.text },
   regionHint: { marginTop: spacing.xs, fontSize: typography.small, color: colors.textSecondary },
+  mapAttribution: { marginTop: spacing.xs, fontSize: 10, color: colors.textSecondary },
 });
 
 export default styles;

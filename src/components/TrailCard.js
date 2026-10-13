@@ -12,7 +12,7 @@ export default function TrailCard({ trail }) {
         <View style={styles.content}>
           <Text style={styles.title}>{trail.name}</Text>
           <Text style={styles.location}>{trail.location}</Text>
-          
+
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Ionicons name="speedometer-outline" size={16} color={colors.textSecondary} />
@@ -24,7 +24,9 @@ export default function TrailCard({ trail }) {
             </View>
             <View style={styles.stat}>
               <Ionicons name="trending-up" size={16} color={colors.textSecondary} />
-              <Text style={styles.statText}>{trail.elevationGainFt} ft</Text>
+              <Text style={styles.statText}>
+                {trail.elevationGainFt == null ? 'Not listed' : `${trail.elevationGainFt} ft`}
+              </Text>
             </View>
           </View>
         </View>

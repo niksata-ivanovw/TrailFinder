@@ -102,7 +102,8 @@ export default function TrailDetailScreen() {
       <View style={styles.infoCard}>
         <Text style={styles.title}>{trail.name}</Text>
         <Text style={styles.stats}>
-          {trail.difficulty} • {trail.distanceMiles} mi • {trail.elevationGainFt} ft gain
+          {trail.difficulty} • {trail.distanceMiles} mi
+          {trail.elevationGainFt == null ? '' : ` • ${trail.elevationGainFt} ft gain`}
         </Text>
         {(trail.description || trail.location || trail.surfaceType) && (
           <Text style={styles.description}>

@@ -8,7 +8,7 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 - Persistent Firebase Auth sessions using React Native AsyncStorage.
 - Startup routing that restores the auth state, then shows the login screen or opens the app.
 - Map, Discover, Saved, and Profile tabs.
-- A map showing routes that intersect the current viewport, with clickable trail routes and markers that open trail details.
+- A map showing routes that intersect the current viewport; tap a route line to open its details.
 - Firestore-backed Discover trail cards with name search, difficulty filters, loading/error states, and pull-to-refresh.
 - Firestore-backed trail detail maps with route lines and waypoint markers.
 - Profile details, shortcuts to Saved and Discover, and sign-out confirmation.
@@ -50,9 +50,9 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
   - [x] Attach `RefreshControl` for **Pull-to-Refresh** functionality.
 - [x] **Trail Details Screen (GET Details)**
   - [x] Read the trail document ID from the `/trail/[id]` route and load trail details dynamically.
-- [ ] Better UI for the trails on the map
-  - [ ] Dont show the red pinpoint
-  - [ ] Better styling of the track
+- [x] Better UI for the trails on the map
+  - [x] Dont show the red pinpoint
+  - [x] Better styling of the track
 - [ ] Fix Dummy tracks' coordinates so they are realistic
 - [ ] **Log Hike Modal & Operations (POST, PUT/PATCH, DELETE)**
   - [ ] Build/connect the modal screen for creating new hike logs (**POST**).
@@ -137,7 +137,7 @@ Create a `trails` collection in Cloud Firestore. Each document ID is used as the
   "difficulty": "Beginner",
   "surfaceType": "Dirt",
   "distanceMiles": 3.2,
-  "elevationGainFt": 120,
+  "elevationGainFt": null,
   "imageUrl": "https://example.com/trail.jpg",
   "coordinates": [
     { "latitude": 43.205, "longitude": 27.9215 }
@@ -153,7 +153,22 @@ Create a `trails` collection in Cloud Firestore. Each document ID is used as the
 }
 ```
 
-The Map tab fetches trails from the `trails` collection and filters their route coordinates against the currently visible map region. Tap a route line to open its detail screen, or tap a trail marker and then its callout. The optional `description` field is shown with the trail location and surface type on the detail screen. Firestore reads are implemented in `src/data/trails.js`. Configure Firestore Security Rules to allow the intended reads; do not leave the database in test mode for production.
+`elevationGainFt` can be `null` when elevation has not been verified. The Map tab fetches trails from the `trails` collection and filters their route coordinates against the currently visible map region. Tap a route line to open its detail screen. The optional `description` field is shown with the trail location and surface type on the detail screen. Firestore reads are implemented in `src/data/trails.js`. Configure Firestore Security Rules to allow the intended reads; do not leave the database in test mode for production.
+
+### One-time replacement with mapped Varna routes
+
+`src/data/varnaMappedTrails.js` contains five route polylines taken from OpenStreetMap hiking relations around Golden Sands/Aladzha and Vinitsa–Kichevo. Run the one-time replacement helper from a temporary, deliberate action (for example, an admin-only button handler):
+
+```js
+import { replaceTrailsWithMappedVarnaRoutes } from '@/data/replaceTrails';
+
+const result = await replaceTrailsWithMappedVarnaRoutes('REPLACE ALL TRAILS');
+console.log(result); // { replacedCount: 5, deletedCount: ... }
+```
+
+This replaces the entire `trails` collection: documents not in the new set are deleted, and the five route documents are created or overwritten. The helper requires the exact confirmation string, needs Firestore read/write/delete permissions, and commits atomically; it refuses to run if the replacement exceeds Firestore's 500-write batch limit. Do not call it automatically on screen render or from a production user action. Remove the temporary trigger after a successful run.
+
+The route relations are from OpenStreetMap and their adapted geometry is subject to the [Open Database License (ODbL)](https://www.openstreetmap.org/copyright). The app displays OpenStreetMap contributor attribution on the map. Route distances are approximations; difficulty labels are provisional and based only on distance, not an official grade. Elevation is unset, and route surface, connectivity, access rights, and current passability have not been verified. Check the source relation and local conditions before relying on these routes.
 
 ## Run on Android
 

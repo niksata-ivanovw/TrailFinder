@@ -7,6 +7,7 @@ import { fetchTrails } from '@/data/trails';
 import { colors } from '@/theme';
 import styles from '@/styles/map.styles';
 
+
 function polylineColorHandler(difficulty) {
   switch (difficulty) {
     case 'Beginner':
@@ -192,6 +193,7 @@ export default function MapTabScreen() {
         {trailsInRegion.length === 0 && (
           <Text style={styles.regionHint}>Move the map to explore nearby trails.</Text>
         )}
+        <Text style={styles.mapAttribution}>Route data © OpenStreetMap contributors (ODbL)</Text>
       </View>
     </View>
   );
