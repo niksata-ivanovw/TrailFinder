@@ -111,6 +111,7 @@ export default function MapTabScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [activeDifficulty, setActiveDifficulty] = useState('All');
 
   const loadTrails = useCallback(async () => {
     setLoading(true);
@@ -139,12 +140,19 @@ export default function MapTabScreen() {
     () => (mappableTrails.length > 0 ? getInitialRegion(mappableTrails) : null),
     [mappableTrails]
   );
+  const trailsForDifficulty = useMemo(
+    () =>
+      activeDifficulty === 'All'
+        ? mappableTrails
+        : mappableTrails.filter((trail) => trail.difficulty === activeDifficulty),
+    [activeDifficulty, mappableTrails]
+  );
   const trailsInRegion = useMemo(
     () =>
       visibleRegion
-        ? mappableTrails.filter((trail) => trailIntersectsRegion(trail, visibleRegion))
-        : mappableTrails,
-    [mappableTrails, visibleRegion]
+        ? trailsForDifficulty.filter((trail) => trailIntersectsRegion(trail, visibleRegion))
+        : trailsForDifficulty,
+    [trailsForDifficulty, visibleRegion]
   );
 
   const openTrail = (trail) => {
@@ -169,19 +177,23 @@ export default function MapTabScreen() {
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
-        initialRegion={initialRegion}
+        initialRegion={visibleRegion ?? initialRegion}
         onRegionChangeComplete={setVisibleRegion}
       >
-        {trailsInRegion.flatMap((trail) => {
+        {mappableTrails.map((trail) => {
           const coordinates = trail.coordinates.filter(isValidCoordinate);
+          const isVisible =
+            activeDifficulty === 'All' || trail.difficulty === activeDifficulty;
           return (
             <Polyline
               key={`route-${trail.id}`}
               coordinates={coordinates}
-              strokeColor={polylineColorHandler(trail.difficulty)}
-              strokeWidth={4}
-              tappable
-              onPress={() => openTrail(trail)}
+              strokeColor={
+                isVisible ? polylineColorHandler(trail.difficulty) : 'rgba(0, 0, 0, 0)'
+              }
+              strokeWidth={isVisible ? 4 : 0}
+              tappable={isVisible}
+              onPress={isVisible ? () => openTrail(trail) : undefined}
             />
           );
         })}
@@ -205,14 +217,37 @@ export default function MapTabScreen() {
         <Funnel size={20} color={colors.textOnPrimary} strokeWidth={2.5} />
       </Pressable>
 
-      <Modal visible={showModal} animationType="slide" onRequestClose={() => setShowModal(false)}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-
-          <Text>Filter options will go here.</Text>
-          <Pressable onPress={() => setShowModal(false)}>
-            <Text>Close</Text>
-          </Pressable>
-          
+      <Modal
+        visible={showModal}
+        animationType="slide"
+        transparent
+        statusBarTranslucent
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.filterModalOverlay}>
+          <View style={styles.filterModalCard}>
+            <Text style={styles.filterModalText}>Difficulty:</Text>
+              <View style={[styles.filterRow, {}]}>
+                {['All', 'Beginner', 'Intermediate', 'Expert'].map((diff) => (
+                  <Pressable
+                    key={diff}
+                    style={({pressed}) => [
+                      {backgroundColor: colors.surface, padding: spacing.sm, borderRadius: spacing.sm, margin: spacing.xs},
+                      pressed && {opacity: 0.6},
+                      diff === 'All' ? {borderWidth: 2, borderColor: colors.black} :
+                      diff === 'Beginner' ? {borderWidth: 2, borderColor: colors.mapRouteBeginner} :
+                      diff === 'Intermediate' ? {borderWidth: 2, borderColor: colors.mapRouteIntermediate} :
+                      diff === 'Expert' ? {borderWidth: 2, borderColor: colors.mapRouteExpert} : {}]}
+                    onPress={() => setActiveDifficulty(diff)}
+                  >
+                    <Text style={{fontWeight: '400'}}>{diff}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            <Pressable style={styles.filterModalClose} onPress={() => setShowModal(false)}>
+              <Text style={styles.filterModalCloseText}>Close</Text>
+            </Pressable>
+          </View>
         </View>
       </Modal>
     </View>

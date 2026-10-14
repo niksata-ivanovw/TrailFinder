@@ -4,7 +4,7 @@ import { colors, spacing, typography } from '@/theme';
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   statusContainer: { flex: 1, justifyContent: 'center', backgroundColor: colors.background },
-  map: { flex: 1 },
+  map: { flex: 1, backgroundColor: colors.background },
   regionBadge: {
     position: 'absolute',
     top: spacing.lg,
@@ -41,6 +41,73 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   filterButtonText: { fontSize: typography.small, fontWeight: '700', color: colors.textOnPrimary },
+  filterModalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    padding: spacing.lg,
+    backgroundColor: colors.overlay,
+  },
+  filterModalCard: {
+    width: '100%',
+    maxWidth: 420,
+    padding: spacing.xxl,
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: spacing.xxl,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: spacing.sm },
+    shadowOpacity: 0.25,
+    shadowRadius: spacing.lg,
+    elevation: 12,
+  },
+  filterModalText: {
+    fontSize: typography.body,
+    color: colors.text,
+    textAlign: 'left',
+    width: '100%',
+    fontWeight: '700',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: spacing.md,
+  },
+  filterDifficultyButton: {
+    backgroundColor: colors.surface,
+    padding: spacing.sm,
+    borderRadius: spacing.sm,
+    margin: spacing.xs,
+    borderWidth: 2,
+  },
+  filterDifficultyButtonSelected: {
+    backgroundColor: colors.primaryLight,
+  },
+  filterDifficultyButtonPressed: {
+    backgroundColor: colors.neutral,
+  },
+  filterDifficultyText: {
+    fontWeight: '400',
+    color: colors.text,
+  },
+  filterDifficultyTextSelected: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  filterModalClose: {
+    marginTop: spacing.xl,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xxl,
+    backgroundColor: colors.primary,
+    borderRadius: spacing.lg,
+  },
+  filterModalCloseText: {
+    fontSize: typography.small,
+    fontWeight: '700',
+    color: colors.textOnPrimary,
+  },
 });
 
 export default styles;

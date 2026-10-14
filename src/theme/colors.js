@@ -38,7 +38,7 @@ const colors = {
   mapRouteBeginner: '#2E7D32',
   mapRouteIntermediate: '#F1C40F',
   mapRouteExpert: '#E74C3C',
-
+  black: '#000000',
 };
 
 export default colors;
