@@ -8,18 +8,20 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 - Persistent Firebase Auth sessions using React Native AsyncStorage.
 - Startup routing that restores the auth state, then shows the login screen or opens the app.
 - Map, Discover, Saved, and Profile tabs.
-- A map showing routes that intersect the current viewport; tap a route line to open its details.
+- A Firestore-backed map with route colors by difficulty, difficulty filters, and route-line navigation to trail details. The map remains mounted while changing difficulty filters.
+- A map badge showing how many trails of the selected difficulty intersect the current viewport.
 - Firestore-backed Discover trail cards with name search, difficulty filters, loading/error states, and pull-to-refresh.
-- Firestore-backed trail detail maps with route lines and waypoint markers.
-- Profile details, shortcuts to Saved and Discover, and sign-out confirmation.
+- Firestore-backed trail detail maps with validated route lines and waypoint markers, plus the user location when permission is granted.
+- Profile details, shortcuts to Saved and Discover, and working sign-out with confirmation.
 - Shared color, spacing, and typography tokens in `src/theme/`; styles are kept in `src/styles/`.
 
 ### Prototype limitations
 
-- Firestore trail coordinates and waypoint positions must be verified before use for navigation. `src/data/dummyTrails.js` is retained only as illustrative sample data and is no longer read by app screens.
-- Elevation gains are estimates.
+- Firestore trail coordinates and waypoint positions must be verified before use for navigation. `src/data/dummyTrails.js` is retained only as illustrative sample data, and app screens do not read it.
+- Elevation gains can be estimates; route difficulty, surface, access rights, connectivity, and current passability are not independently verified.
 - The Saved tab is a placeholder; bookmarking and offline maps are not implemented.
 - Featured trail images are remote Unsplash URLs and require an internet connection.
+- OpenStreetMap-derived route data requires attribution and is subject to the ODbL. Verify that attribution is visible wherever this route data is shown.
 
 ## Tech stack
 
@@ -53,7 +55,8 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 - [x] Better UI for the trails on the map
   - [x] Dont show the red pinpoint
   - [x] Better styling of the track
-- [ ] Fix Dummy tracks' coordinates so they are realistic
+- [x] Fix Dummy tracks' coordinates so they are realistic
+- [x] Add map difficulty filtering without remounting the map
 - [ ] **Log Hike Modal & Operations (POST, PUT/PATCH, DELETE)**
   - [ ] Build/connect the modal screen for creating new hike logs (**POST**).
   - [ ] Add ability for users to update notes/ratings on existing logs (**PUT/PATCH**).
@@ -85,7 +88,8 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 - [ ] **Offline Caching & Bookmarks**
   - [ ] Implement local storage bookmarking for favorite trails using `@react-native-async-storage/async-storage` or `expo-sqlite`.
 - [ ] **Profile Screen**
-  - [ ] Display user activity stats, saved trails list, and functional Logout button.
+  - [x] Display account details, links to Saved and Discover, and sign-out confirmation.
+  - [ ] Display user activity stats and a functional saved trails list.
 
 ---
 
@@ -153,7 +157,7 @@ Create a `trails` collection in Cloud Firestore. Each document ID is used as the
 }
 ```
 
-`elevationGainFt` can be `null` when elevation has not been verified. The Map tab fetches trails from the `trails` collection and filters their route coordinates against the currently visible map region. Tap a route line to open its detail screen. The optional `description` field is shown with the trail location and surface type on the detail screen. Firestore reads are implemented in `src/data/trails.js`. Configure Firestore Security Rules to allow the intended reads; do not leave the database in test mode for production.
+`elevationGainFt` can be `null` when elevation has not been verified. The Map tab fetches trails from the `trails` collection, keeps valid route polylines mounted, and filters their visibility by difficulty. Its badge counts trails of the selected difficulty that intersect the current viewport; it does not automatically move the camera when a difficulty is selected. Tap a visible route line to open its detail screen. The Discover tab independently supports name search and difficulty filters. The optional `description` field is shown with the trail location and surface type on the detail screen. Firestore reads are implemented in `src/data/trails.js`. Configure Firestore Security Rules to allow the intended reads; do not leave the database in test mode for production.
 
 ### One-time replacement with mapped Varna routes
 
@@ -168,7 +172,7 @@ console.log(result); // { replacedCount: 5, deletedCount: ... }
 
 This replaces the entire `trails` collection: documents not in the new set are deleted, and the five route documents are created or overwritten. The helper requires the exact confirmation string, needs Firestore read/write/delete permissions, and commits atomically; it refuses to run if the replacement exceeds Firestore's 500-write batch limit. Do not call it automatically on screen render or from a production user action. Remove the temporary trigger after a successful run.
 
-The route relations are from OpenStreetMap and their adapted geometry is subject to the [Open Database License (ODbL)](https://www.openstreetmap.org/copyright). The app displays OpenStreetMap contributor attribution on the map. Route distances are approximations; difficulty labels are provisional and based only on distance, not an official grade. Elevation is unset, and route surface, connectivity, access rights, and current passability have not been verified. Check the source relation and local conditions before relying on these routes.
+The route relations are from OpenStreetMap and their adapted geometry is subject to the [Open Database License (ODbL)](https://www.openstreetmap.org/copyright). The current map screen does not display explicit OpenStreetMap attribution; add visible attribution before distributing the app with these routes. Route distances are approximations; difficulty labels are provisional and based only on distance, not an official grade. Elevation is unset, and route surface, connectivity, access rights, and current passability have not been verified. Check the source relation and local conditions before relying on these routes.
 
 ## Run on Android
 
@@ -204,9 +208,11 @@ app/                         Expo Router routes and layouts
   tabs/                      Map, Discover, Saved, and Profile
   trail/[id].js              Trail detail map
 src/
-  components/                Shared UI components
+  components/                Shared UI, trail cards, and query-state components
   data/trails.js              Firestore trail queries
   data/dummyTrails.js         Illustrative sample data (unused by app screens)
+  data/varnaMappedTrails.js   OpenStreetMap-derived Varna route dataset
+  data/replaceTrails.js       Guarded one-time Firestore replacement helper
   screens/                   Login and registration screens
   styles/                    Screen and component StyleSheet modules
   theme/                     Shared colors, spacing, and typography
