@@ -5,7 +5,6 @@ import TrailQueryState from '@/components/TrailQueryState';
 import { fetchTrails } from '@/data/trails';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '@/styles/discover.styles';
-import { replaceTrailsWithMappedVarnaRoutes } from '../../src/data/replaceTrails';
 
 // const result = await replaceTrailsWithMappedVarnaRoutes('REPLACE ALL TRAILS');
 // console.log(result);
@@ -58,9 +57,6 @@ export default function DiscoverScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <Pressable style={styles.refreshButton} onPress={() => replaceTrailsWithMappedVarnaRoutes('REPLACE ALL TRAILS')}>
-          <Text style={styles.refreshButtonText}>Refresh</Text>
-        </Pressable>
 
         <View style={styles.filterRow}>
           {DIFFICULTIES.map((diff) => (

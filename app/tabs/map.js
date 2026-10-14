@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
-import { Text, View } from 'react-native';
+import { Text, View, Modal, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TrailQueryState from '@/components/TrailQueryState';
 import { fetchTrails } from '@/data/trails';
-import { colors } from '@/theme';
+import { colors, spacing } from '@/theme';
 import styles from '@/styles/map.styles';
-
+import { Funnel } from 'lucide-react-native';
 
 function polylineColorHandler(difficulty) {
   switch (difficulty) {
@@ -104,10 +105,12 @@ function getInitialRegion(trails) {
 
 export default function MapTabScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [trails, setTrails] = useState([]);
   const [visibleRegion, setVisibleRegion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const loadTrails = useCallback(async () => {
     setLoading(true);
@@ -184,7 +187,7 @@ export default function MapTabScreen() {
         })}
       </MapView>
 
-      <View style={styles.regionBadge} pointerEvents="none">
+      <View style={[styles.regionBadge, { top: insets.top + spacing.lg }]} pointerEvents="none">
         <Text style={styles.regionBadgeText}>
           {trailsInRegion.length === 1
             ? '1 trail in this area'
@@ -193,8 +196,25 @@ export default function MapTabScreen() {
         {trailsInRegion.length === 0 && (
           <Text style={styles.regionHint}>Move the map to explore nearby trails.</Text>
         )}
-        <Text style={styles.mapAttribution}>Route data © OpenStreetMap contributors (ODbL)</Text>
       </View>
+      <Pressable
+        style={[styles.filterButton, { bottom: insets.bottom + spacing.lg }]}
+        onPress={() => setShowModal(true)}
+      >
+        <Text style={styles.filterButtonText}>Filter</Text>
+        <Funnel size={20} color={colors.textOnPrimary} strokeWidth={2.5} />
+      </Pressable>
+
+      <Modal visible={showModal} animationType="slide" onRequestClose={() => setShowModal(false)}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+
+          <Text>Filter options will go here.</Text>
+          <Pressable onPress={() => setShowModal(false)}>
+            <Text>Close</Text>
+          </Pressable>
+          
+        </View>
+      </Modal>
     </View>
   );
 }

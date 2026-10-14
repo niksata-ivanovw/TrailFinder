@@ -8,6 +8,17 @@ import { fetchTrail } from '@/data/trails';
 import { colors } from '@/theme';
 import styles from '@/styles/trail-detail.styles';
 
+function isValidCoordinate(point) {
+  return (
+    Number.isFinite(point?.latitude) &&
+    Number.isFinite(point?.longitude) &&
+    point.latitude >= -90 &&
+    point.latitude <= 90 &&
+    point.longitude >= -180 &&
+    point.longitude <= 180
+  );
+}
+
 export default function TrailDetailScreen() {
   const { id } = useLocalSearchParams();
   const trailId = Array.isArray(id) ? id[0] : id;
@@ -27,7 +38,16 @@ export default function TrailDetailScreen() {
     setLoading(true);
     setError(null);
     try {
-      setTrail(await fetchTrail(trailId));
+      const fetchedTrail = await fetchTrail(trailId);
+      if (
+        Array.isArray(fetchedTrail?.waypoints) &&
+        fetchedTrail.waypoints.some((waypoint) => !isValidCoordinate(waypoint))
+      ) {
+        console.warn(
+          `Trail ${trailId} has waypoints with invalid coordinates; those markers were omitted.`
+        );
+      }
+      setTrail(fetchedTrail);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load this trail.');
     } finally {
@@ -59,7 +79,10 @@ export default function TrailDetailScreen() {
     );
   }
 
-  if (!Array.isArray(trail.coordinates) || trail.coordinates.length === 0) {
+  const coordinates = Array.isArray(trail.coordinates)
+    ? trail.coordinates.filter(isValidCoordinate)
+    : [];
+  if (coordinates.length === 0) {
     return (
       <View style={styles.statusContainer}>
         <TrailQueryState error="This trail does not have a route yet." />
@@ -67,13 +90,13 @@ export default function TrailDetailScreen() {
     );
   }
 
-  // Calculate the center of the map based on the first coordinate
   const initialRegion = {
-    latitude: trail.coordinates[0].latitude,
-    longitude: trail.coordinates[0].longitude,
+    latitude: coordinates[0].latitude,
+    longitude: coordinates[0].longitude,
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
   };
+  const waypoints = Array.isArray(trail.waypoints) ? trail.waypoints.filter(isValidCoordinate) : [];
 
   return (
     <View style={styles.container}>
@@ -84,10 +107,10 @@ export default function TrailDetailScreen() {
         showsUserLocation={hasLocationPermission} // Shows the blue dot if allowed
       >
         {/* Draw the route */}
-        <Polyline coordinates={trail.coordinates} strokeColor={colors.mapRoute} strokeWidth={4} />
+        <Polyline coordinates={coordinates} strokeColor={colors.mapRoute} strokeWidth={4} />
 
         {/* Plot Waypoints */}
-        {trail.waypoints?.map((poi, index) => (
+        {waypoints.map((poi, index) => (
           <Marker
             key={index}
             coordinate={{ latitude: poi.latitude, longitude: poi.longitude }}

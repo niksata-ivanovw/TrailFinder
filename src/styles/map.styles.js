@@ -23,6 +23,24 @@ const styles = StyleSheet.create({
   regionBadgeText: { fontSize: typography.small, fontWeight: '700', color: colors.text },
   regionHint: { marginTop: spacing.xs, fontSize: typography.small, color: colors.textSecondary },
   mapAttribution: { marginTop: spacing.xs, fontSize: 10, color: colors.textSecondary },
+  filterButton: {
+    position: 'absolute',
+    bottom: spacing.lg,
+    right: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: 999,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: spacing.sm },
+    shadowOpacity: 0.25,
+    shadowRadius: spacing.md,
+    elevation: 8,
+  },
+  filterButtonText: { fontSize: typography.small, fontWeight: '700', color: colors.textOnPrimary },
 });
 
 export default styles;
