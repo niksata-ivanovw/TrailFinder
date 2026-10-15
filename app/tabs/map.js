@@ -9,7 +9,7 @@ import { colors, spacing } from '@/theme';
 import styles from '@/styles/map.styles';
 import { Funnel, MapPin} from 'lucide-react-native';
 
-// dial for the selected trail, visuall yseperate them
+// improve highlighted trail UI
 
 function polylineColorHandler(difficulty) {
   switch (difficulty) {
@@ -177,9 +177,9 @@ export default function MapTabScreen() {
     setShowTrailDetailsModal(showDetails && Boolean(trail));
   };
 
-  // const openTrail = (trail) => {
-  //   router.push({ pathname: '/trail/[id]', params: { id: trail.id } });
-  // };
+  const openTrail = (trail) => {
+    router.push({ pathname: '/trail/[id]', params: { id: trail.id } });
+  };
 
   if (loading || error || mappableTrails.length === 0) {
     return (
@@ -328,15 +328,74 @@ export default function MapTabScreen() {
           ]}
         >
           <View style={styles.trailDetailsModalCard}>
-            <Text style={styles.trailDetailsModalText}>Trail Details</Text>
+            <View style={styles.trailDetailsModalHandle} />
+            <View style={styles.trailDetailsHeader}>
+              <View style={styles.trailDetailsTitleContainer}>
+                <Text style={styles.trailDetailsTitle} numberOfLines={2}>
+                  {selectedTrail.name}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.trailDetailsDifficultyBadge,
+                  { borderColor: polylineColorHandler(selectedTrail.difficulty) },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.trailDetailsDifficultyText,
+                    { color: polylineColorHandler(selectedTrail.difficulty) },
+                  ]}
+                >
+                  {selectedTrail.difficulty}
+                </Text>
+              </View>
+            </View>
+            {selectedTrail.location ? (
+              <Text style={styles.trailDetailsLocation} numberOfLines={2}>
+                {selectedTrail.location}
+              </Text>
+            ) : null}
+            <View style={styles.trailDetailsStats}>
+              <View style={styles.trailDetailsStat}>
+                <Text style={styles.trailDetailsStatLabel}>DISTANCE</Text>
+                <Text style={styles.trailDetailsStatValue}>
+                  {selectedTrail.distanceMiles ?? '—'} mi
+                </Text>
+              </View>
+              <View style={styles.trailDetailsStatDivider} />
+              <View style={styles.trailDetailsStat}>
+                <Text style={styles.trailDetailsStatLabel}>ELEVATION GAIN</Text>
+                <Text style={styles.trailDetailsStatValue}>
+                  {selectedTrail.elevationGainFt == null
+                    ? '—'
+                    : `${selectedTrail.elevationGainFt} ft`}
+                </Text>
+              </View>
+            </View>
             <Pressable
               accessibilityRole="button"
-              style={styles.trailDetailsModalClose}
+              style={({ pressed }) => [
+                styles.trailDetailsPrimaryButton,
+                pressed && styles.trailDetailsButtonPressed,
+              ]}
+              onPress={() => {
+                openTrail(selectedTrail);
+              }}
+            >
+              <Text style={styles.trailDetailsPrimaryButtonText}>See full trail details</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.trailDetailsSecondaryButton,
+                pressed && styles.trailDetailsButtonPressed,
+              ]}
               onPress={() => {
                 highlightSelectedTrailHandler(null, false);
               }}
             >
-              <Text style={styles.trailDetailsModalCloseText}>Close</Text>
+              <Text style={styles.trailDetailsSecondaryButtonText}>Close</Text>
             </Pressable>
           </View>
         </View>
