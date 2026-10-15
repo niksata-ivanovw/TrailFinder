@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Text, View, Modal, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TrailQueryState from '@/components/TrailQueryState';
 import { fetchTrails } from '@/data/trails';
 import { colors, spacing } from '@/theme';
 import styles from '@/styles/map.styles';
-import { Funnel } from 'lucide-react-native';
+import { Funnel, MapPin} from 'lucide-react-native';
 
 // dial for the selected trail, visuall yseperate them
 
@@ -159,13 +159,22 @@ export default function MapTabScreen() {
     [trailsForDifficulty, visibleRegion]
   );
   const selectedTrail = mappableTrails.find((trail) => trail.id === selectedTrailId);
-  const isSelectedTrailVisible =
+  const selectedTrailCoordinates =
+    selectedTrail?.coordinates.filter(isValidCoordinate) ?? [];
+  const fallbackCoordinate = mappableTrails[0]?.coordinates.find(isValidCoordinate);
+  const isSelectedTrailVisible = Boolean(
     selectedTrail &&
-    (activeDifficulty === 'All' || selectedTrail.difficulty === activeDifficulty);
+      (activeDifficulty === 'All' || selectedTrail.difficulty === activeDifficulty)
+  );
 
   const highlightSelectedTrailHandler = (trailId, showDetails = true) => {
-    setSelectedTrailId(trailId);
-    setShowTrailDetailsModal(showDetails);
+    const trail = mappableTrails.find((item) => item.id === trailId);
+    if (trail && !trail.coordinates.some(isValidCoordinate)) {
+      console.warn('Selected trail has no valid coordinates to fit the map region.');
+    }
+
+    setSelectedTrailId(trail?.id ?? null);
+    setShowTrailDetailsModal(showDetails && Boolean(trail));
   };
 
   // const openTrail = (trail) => {
@@ -193,41 +202,69 @@ export default function MapTabScreen() {
         initialRegion={visibleRegion ?? initialRegion}
         onRegionChangeComplete={setVisibleRegion}
       >
-        {trailsForDifficulty
-          .filter((trail) => trail.id !== selectedTrailId)
-          .map((trail) => {
-            const coordinates = trail.coordinates.filter(isValidCoordinate);
+        {mappableTrails.map((trail) => {
+          const coordinates = trail.coordinates.filter(isValidCoordinate);
+          const isVisible =
+            activeDifficulty === 'All' || trail.difficulty === activeDifficulty;
 
-            return (
-              <Polyline
-                key={`route-${trail.id}`}
-                coordinates={coordinates}
-                strokeColor={polylineColorHandler(trail.difficulty)}
-                strokeWidth={4}
-                tappable
-                onPress={() => highlightSelectedTrailHandler(trail.id)}
-              />
-            );
-          })}
-        {isSelectedTrailVisible && (
-          <Polyline
-            key={`selected-trail-highlight-${selectedTrail.id}`}
-            coordinates={selectedTrail.coordinates.filter(isValidCoordinate)}
-            strokeColor={colors.surface}
-            strokeWidth={10}
-            tappable={false}
-          />
-        )}
-        {isSelectedTrailVisible && (
-          <Polyline
-            key={`selected-route-${selectedTrail.id}`}
-            coordinates={selectedTrail.coordinates.filter(isValidCoordinate)}
-            strokeColor={polylineColorHandler(selectedTrail.difficulty)}
-            strokeWidth={6}
-            tappable
-            onPress={() => highlightSelectedTrailHandler(selectedTrail.id)}
-          />
-        )}
+          return (
+            <Polyline
+              key={`route-${trail.id}`}
+              coordinates={coordinates}
+              strokeColor={isVisible ? polylineColorHandler(trail.difficulty) : 'transparent'}
+              strokeWidth={isVisible ? 4 : 0}
+              tappable={isVisible}
+              onPress={() => highlightSelectedTrailHandler(trail.id)}
+            />
+          );
+        })}
+        <Polyline
+          key="selected-trail-highlight"
+          coordinates={
+            selectedTrailCoordinates.length
+              ? selectedTrailCoordinates
+              : [fallbackCoordinate]
+          }
+          strokeColor={isSelectedTrailVisible ? colors.surface : 'transparent'}
+          strokeWidth={isSelectedTrailVisible ? 10 : 0}
+          tappable={false}
+        />
+        <Polyline
+          key="selected-trail-route"
+          coordinates={
+            selectedTrailCoordinates.length
+              ? selectedTrailCoordinates
+              : [fallbackCoordinate]
+          }
+          strokeColor={
+            isSelectedTrailVisible
+              ? polylineColorHandler(selectedTrail.difficulty)
+              : 'transparent'
+          }
+          strokeWidth={isSelectedTrailVisible ? 6 : 0}
+          tappable={false}
+        />
+        <Marker
+          coordinate={selectedTrailCoordinates[0] ?? fallbackCoordinate}
+          opacity={isSelectedTrailVisible ? 1 : 0}
+          anchor={{ x: 0.5, y: 1 }}
+        >
+          <View collapsable={false}>
+            <MapPin size={32} color={colors.error} />
+          </View>
+        </Marker>
+        <Marker
+          coordinate={
+            selectedTrailCoordinates[selectedTrailCoordinates.length - 1] ??
+            fallbackCoordinate
+          }
+          opacity={isSelectedTrailVisible ? 1 : 0}
+          anchor={{ x: 0.5, y: 1 }}
+        >
+          <View collapsable={false}>
+            <MapPin size={32} color={colors.success} />
+          </View>
+        </Marker>
       </MapView>
 
       <View style={[styles.regionBadge, { top: insets.top + spacing.lg }]} pointerEvents="none">
@@ -287,7 +324,7 @@ export default function MapTabScreen() {
           pointerEvents="box-none"
           style={[
             styles.trailDetailsModalOverlay,
-            { paddingBottom: insets.bottom + spacing.lg },
+            { paddingBottom: insets.bottom + spacing.sm },
           ]}
         >
           <View style={styles.trailDetailsModalCard}>
@@ -295,7 +332,9 @@ export default function MapTabScreen() {
             <Pressable
               accessibilityRole="button"
               style={styles.trailDetailsModalClose}
-              onPress={() => {setShowTrailDetailsModal(false); highlightSelectedTrailHandler(null, false);}}
+              onPress={() => {
+                highlightSelectedTrailHandler(null, false);
+              }}
             >
               <Text style={styles.trailDetailsModalCloseText}>Close</Text>
             </Pressable>
