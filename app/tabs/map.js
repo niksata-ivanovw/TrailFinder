@@ -9,6 +9,8 @@ import { colors, spacing } from '@/theme';
 import styles from '@/styles/map.styles';
 import { Funnel } from 'lucide-react-native';
 
+// dial for the selected trail, visuall yseperate them
+
 function polylineColorHandler(difficulty) {
   switch (difficulty) {
     case 'Beginner':
@@ -110,8 +112,10 @@ export default function MapTabScreen() {
   const [visibleRegion, setVisibleRegion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showTrailDetailsModal, setShowTrailDetailsModal] = useState(false);
   const [activeDifficulty, setActiveDifficulty] = useState('All');
+  const [selectedTrailId, setSelectedTrailId] = useState(null);
 
   const loadTrails = useCallback(async () => {
     setLoading(true);
@@ -154,10 +158,19 @@ export default function MapTabScreen() {
         : trailsForDifficulty,
     [trailsForDifficulty, visibleRegion]
   );
+  const selectedTrail = mappableTrails.find((trail) => trail.id === selectedTrailId);
+  const isSelectedTrailVisible =
+    selectedTrail &&
+    (activeDifficulty === 'All' || selectedTrail.difficulty === activeDifficulty);
 
-  const openTrail = (trail) => {
-    router.push({ pathname: '/trail/[id]', params: { id: trail.id } });
+  const highlightSelectedTrailHandler = (trailId, showDetails = true) => {
+    setSelectedTrailId(trailId);
+    setShowTrailDetailsModal(showDetails);
   };
+
+  // const openTrail = (trail) => {
+  //   router.push({ pathname: '/trail/[id]', params: { id: trail.id } });
+  // };
 
   if (loading || error || mappableTrails.length === 0) {
     return (
@@ -180,23 +193,41 @@ export default function MapTabScreen() {
         initialRegion={visibleRegion ?? initialRegion}
         onRegionChangeComplete={setVisibleRegion}
       >
-        {mappableTrails.map((trail) => {
-          const coordinates = trail.coordinates.filter(isValidCoordinate);
-          const isVisible =
-            activeDifficulty === 'All' || trail.difficulty === activeDifficulty;
-          return (
-            <Polyline
-              key={`route-${trail.id}`}
-              coordinates={coordinates}
-              strokeColor={
-                isVisible ? polylineColorHandler(trail.difficulty) : 'rgba(0, 0, 0, 0)'
-              }
-              strokeWidth={isVisible ? 4 : 0}
-              tappable={isVisible}
-              onPress={isVisible ? () => openTrail(trail) : undefined}
-            />
-          );
-        })}
+        {trailsForDifficulty
+          .filter((trail) => trail.id !== selectedTrailId)
+          .map((trail) => {
+            const coordinates = trail.coordinates.filter(isValidCoordinate);
+
+            return (
+              <Polyline
+                key={`route-${trail.id}`}
+                coordinates={coordinates}
+                strokeColor={polylineColorHandler(trail.difficulty)}
+                strokeWidth={4}
+                tappable
+                onPress={() => highlightSelectedTrailHandler(trail.id)}
+              />
+            );
+          })}
+        {isSelectedTrailVisible && (
+          <Polyline
+            key={`selected-trail-highlight-${selectedTrail.id}`}
+            coordinates={selectedTrail.coordinates.filter(isValidCoordinate)}
+            strokeColor={colors.surface}
+            strokeWidth={10}
+            tappable={false}
+          />
+        )}
+        {isSelectedTrailVisible && (
+          <Polyline
+            key={`selected-route-${selectedTrail.id}`}
+            coordinates={selectedTrail.coordinates.filter(isValidCoordinate)}
+            strokeColor={polylineColorHandler(selectedTrail.difficulty)}
+            strokeWidth={6}
+            tappable
+            onPress={() => highlightSelectedTrailHandler(selectedTrail.id)}
+          />
+        )}
       </MapView>
 
       <View style={[styles.regionBadge, { top: insets.top + spacing.lg }]} pointerEvents="none">
@@ -211,18 +242,18 @@ export default function MapTabScreen() {
       </View>
       <Pressable
         style={[styles.filterButton, { bottom: insets.bottom + spacing.lg }]}
-        onPress={() => setShowModal(true)}
+        onPress={() => setShowFilterModal(true)}
       >
         <Text style={styles.filterButtonText}>Filter</Text>
         <Funnel size={20} color={colors.textOnPrimary} strokeWidth={2.5} />
       </Pressable>
 
       <Modal
-        visible={showModal}
+        visible={showFilterModal}
         animationType="slide"
         transparent
         statusBarTranslucent
-        onRequestClose={() => setShowModal(false)}
+        onRequestClose={() => setShowFilterModal(false)}
       >
         <View style={styles.filterModalOverlay}>
           <View style={styles.filterModalCard}>
@@ -244,12 +275,33 @@ export default function MapTabScreen() {
                   </Pressable>
                 ))}
               </View>
-            <Pressable style={styles.filterModalClose} onPress={() => setShowModal(false)}>
+            <Pressable style={styles.filterModalClose} onPress={() => setShowFilterModal(false)}>
               <Text style={styles.filterModalCloseText}>Close</Text>
             </Pressable>
           </View>
         </View>
       </Modal>
+
+      {showTrailDetailsModal && (
+        <View
+          pointerEvents="box-none"
+          style={[
+            styles.trailDetailsModalOverlay,
+            { paddingBottom: insets.bottom + spacing.lg },
+          ]}
+        >
+          <View style={styles.trailDetailsModalCard}>
+            <Text style={styles.trailDetailsModalText}>Trail Details</Text>
+            <Pressable
+              accessibilityRole="button"
+              style={styles.trailDetailsModalClose}
+              onPress={() => {setShowTrailDetailsModal(false); highlightSelectedTrailHandler(null, false);}}
+            >
+              <Text style={styles.trailDetailsModalCloseText}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
