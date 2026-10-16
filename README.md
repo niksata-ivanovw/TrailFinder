@@ -8,8 +8,8 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 - Persistent Firebase Auth sessions using React Native AsyncStorage.
 - Startup routing that restores the auth state, then shows the login screen or opens the app.
 - Map, Discover, Saved, and Profile tabs.
-- A Firestore-backed map with route colors by difficulty, difficulty filters, and route-line navigation to trail details. The map remains mounted while changing difficulty filters.
-- A map badge showing how many trails of the selected difficulty intersect the current viewport.
+- A Firestore-backed map with colored route lines by difficulty, a floating Filter action, and a route detail sheet that opens from a tapped trail. The map stays mounted while difficulty filters change.
+- A live map badge showing how many trails of the selected difficulty currently intersect the visible viewport, plus a highlighted route overlay with start/end markers for the selected trail.
 - Firestore-backed Discover trail cards with name search, difficulty filters, loading/error states, and pull-to-refresh.
 - Firestore-backed trail detail maps with validated route lines and waypoint markers, plus the user location when permission is granted.
 - Profile details, shortcuts to Saved and Discover, and working sign-out with confirmation.
@@ -157,7 +157,7 @@ Create a `trails` collection in Cloud Firestore. Each document ID is used as the
 }
 ```
 
-`elevationGainFt` can be `null` when elevation has not been verified. The Map tab fetches trails from the `trails` collection, keeps valid route polylines mounted, and filters their visibility by difficulty. Its badge counts trails of the selected difficulty that intersect the current viewport; it does not automatically move the camera when a difficulty is selected. Tap a visible route line to open its detail screen. The Discover tab independently supports name search and difficulty filters. The optional `description` field is shown with the trail location and surface type on the detail screen. Firestore reads are implemented in `src/data/trails.js`. Configure Firestore Security Rules to allow the intended reads; do not leave the database in test mode for production.
+`elevationGainFt` can be `null` when elevation has not been verified. The Map tab fetches trails from the `trails` collection, keeps valid route polylines mounted, and filters their visibility by difficulty. Its badge counts trails of the selected difficulty that intersect the current viewport; it does not automatically move the camera when a difficulty is selected. Tapping a visible route line opens a detail sheet with the route summary, distance, elevation, and a link to the full trail view. The Discover tab independently supports name search and difficulty filters. The optional `description` field is shown with the trail location and surface type on the detail screen. Firestore reads are implemented in `src/data/trails.js`. Configure Firestore Security Rules to allow the intended reads; do not leave the database in test mode for production.
 
 ### One-time replacement with mapped Varna routes
 

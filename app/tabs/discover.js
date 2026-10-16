@@ -6,9 +6,6 @@ import { fetchTrails } from '@/data/trails';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '@/styles/discover.styles';
 
-// const result = await replaceTrailsWithMappedVarnaRoutes('REPLACE ALL TRAILS');
-// console.log(result);
-
 
 const DIFFICULTIES = ['All', 'Beginner', 'Intermediate', 'Expert'];
 
