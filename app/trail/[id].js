@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { View, Text, Pressable } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import TrailQueryState from '@/components/TrailQueryState';
@@ -20,6 +20,7 @@ function isValidCoordinate(point) {
 }
 
 export default function TrailDetailScreen() {
+  const router = useRouter();
   const { id } = useLocalSearchParams();
   const trailId = Array.isArray(id) ? id[0] : id;
   const [trail, setTrail] = useState(null);
@@ -116,7 +117,15 @@ export default function TrailDetailScreen() {
             coordinate={{ latitude: poi.latitude, longitude: poi.longitude }}
             title={poi.title}
             description={poi.type}
-            pinColor={poi.type === 'trailhead' ? 'green' : 'red'}
+            pinColor={
+              index === 0
+                ? 'green'
+                : index === waypoints.length - 1
+                  ? 'red'
+                  : poi.type === 'trailhead'
+                    ? 'green'
+                    : 'red'
+            }
           />
         ))}
       </MapView>
@@ -133,6 +142,9 @@ export default function TrailDetailScreen() {
             {[trail.description, trail.location, trail.surfaceType].filter(Boolean).join(' • ')}
           </Text>
         )}
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </Pressable>
       </View>
     </View>
   );

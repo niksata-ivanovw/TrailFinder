@@ -21,6 +21,24 @@ const styles = StyleSheet.create({
   title: { fontSize: typography.subtitle, fontWeight: 'bold', color: colors.text, marginBottom: 4 },
   stats: { fontSize: typography.small, color: colors.textSecondary },
   description: { marginTop: spacing.sm, fontSize: typography.small, color: colors.textSecondary },
+  backButton: {
+    marginTop: spacing.lg,
+    backgroundColor: colors.primary,
+    borderRadius: spacing.md,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  backButtonText: {
+    color: colors.textOnPrimary,
+    fontSize: typography.small,
+    fontWeight: '700',
+  },
   notFound: { padding: spacing.xl },
 });
 

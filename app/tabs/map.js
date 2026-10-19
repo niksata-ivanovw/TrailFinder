@@ -7,7 +7,7 @@ import TrailQueryState from '@/components/TrailQueryState';
 import { fetchTrails } from '@/data/trails';
 import { colors, spacing } from '@/theme';
 import styles from '@/styles/map.styles';
-import { Funnel, MapPin} from 'lucide-react-native';
+import { Funnel } from 'lucide-react-native';
 
 // improve highlighted trail UI
 
@@ -248,11 +248,9 @@ export default function MapTabScreen() {
           coordinate={selectedTrailCoordinates[0] ?? fallbackCoordinate}
           opacity={isSelectedTrailVisible ? 1 : 0}
           anchor={{ x: 0.5, y: 1 }}
-        >
-          <View collapsable={false}>
-            <MapPin size={32} color={colors.error} />
-          </View>
-        </Marker>
+          title="Trail start"
+          pinColor="green"
+        />
         <Marker
           coordinate={
             selectedTrailCoordinates[selectedTrailCoordinates.length - 1] ??
@@ -260,11 +258,9 @@ export default function MapTabScreen() {
           }
           opacity={isSelectedTrailVisible ? 1 : 0}
           anchor={{ x: 0.5, y: 1 }}
-        >
-          <View collapsable={false}>
-            <MapPin size={32} color={colors.success} />
-          </View>
-        </Marker>
+          title="Trail end"
+          pinColor="red"
+        />
       </MapView>
 
       <View style={[styles.regionBadge, { top: insets.top + spacing.lg }]} pointerEvents="none">
@@ -327,6 +323,12 @@ export default function MapTabScreen() {
             { paddingBottom: insets.bottom + spacing.sm },
           ]}
         >
+          {/* <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close trail details"
+            style={styles.trailDetailsModalBackdrop}
+            onPress={() => highlightSelectedTrailHandler(null, false)}
+          /> */}
           <View style={styles.trailDetailsModalCard}>
             <View style={styles.trailDetailsModalHandle} />
             <View style={styles.trailDetailsHeader}>

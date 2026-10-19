@@ -27,8 +27,8 @@ function makeTrail({
     imageUrl,
     coordinates: coordinates.map(([latitude, longitude]) => ({ latitude, longitude })),
     waypoints: [
-      { type: 'trailhead', title: 'Route start', ...start },
-      { type: 'trailhead', title: 'Route end', ...end },
+      { type: 'trailhead', title: 'Route start', latitude: start[0], longitude: start[1] },
+      { type: 'trailhead', title: 'Route end', latitude: end[0], longitude: end[1] },
     ],
     source: {
       name: 'OpenStreetMap',
