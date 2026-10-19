@@ -21,8 +21,35 @@ const styles = StyleSheet.create({
   title: { fontSize: typography.subtitle, fontWeight: 'bold', color: colors.text, marginBottom: 4 },
   stats: { fontSize: typography.small, color: colors.textSecondary },
   description: { marginTop: spacing.sm, fontSize: typography.small, color: colors.textSecondary },
-  backButton: {
+  logHikeButton: {
     marginTop: spacing.lg,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    borderRadius: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  logHikeButtonDisabled: { opacity: 0.65 },
+  logHikeButtonText: {
+    color: colors.primary,
+    fontSize: typography.small,
+    fontWeight: '700',
+  },
+  hikeLogSuccess: {
+    marginTop: spacing.sm,
+    color: colors.primary,
+    fontSize: typography.caption,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  hikeLogError: {
+    marginTop: spacing.sm,
+    color: colors.danger,
+    fontSize: typography.caption,
+  },
+  backButton: {
+    marginTop: spacing.md,
     backgroundColor: colors.primary,
     borderRadius: spacing.md,
     paddingVertical: 12,

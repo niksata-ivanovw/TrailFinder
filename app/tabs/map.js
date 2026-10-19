@@ -323,12 +323,6 @@ export default function MapTabScreen() {
             { paddingBottom: insets.bottom + spacing.sm },
           ]}
         >
-          {/* <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Close trail details"
-            style={styles.trailDetailsModalBackdrop}
-            onPress={() => highlightSelectedTrailHandler(null, false)}
-          /> */}
           <View style={styles.trailDetailsModalCard}>
             <View style={styles.trailDetailsModalHandle} />
             <View style={styles.trailDetailsHeader}>

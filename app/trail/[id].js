@@ -4,9 +4,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import TrailQueryState from '@/components/TrailQueryState';
+import { logCompletedHike } from '@/data/hikes';
 import { fetchTrail } from '@/data/trails';
 import { colors } from '@/theme';
 import styles from '@/styles/trail-detail.styles';
+import { auth } from '../../firebaseConfig';
 
 function isValidCoordinate(point) {
   return (
@@ -27,6 +29,9 @@ export default function TrailDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasLocationPermission, setHasLocationPermission] = useState(false);
+  const [loggingHike, setLoggingHike] = useState(false);
+  const [hikeLogged, setHikeLogged] = useState(false);
+  const [hikeLogError, setHikeLogError] = useState(null);
 
   const loadTrail = useCallback(async () => {
     if (!trailId) {
@@ -59,6 +64,11 @@ export default function TrailDetailScreen() {
   useEffect(() => {
     loadTrail();
   }, [loadTrail]);
+
+  useEffect(() => {
+    setHikeLogged(false);
+    setHikeLogError(null);
+  }, [trailId]);
 
   useEffect(() => {
     (async () => {
@@ -98,6 +108,25 @@ export default function TrailDetailScreen() {
     longitudeDelta: 0.05,
   };
   const waypoints = Array.isArray(trail.waypoints) ? trail.waypoints.filter(isValidCoordinate) : [];
+
+  const handleLogHike = async () => {
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+      setHikeLogError('Sign in to save this hike to your history.');
+      return;
+    }
+
+    setLoggingHike(true);
+    setHikeLogError(null);
+    try {
+      await logCompletedHike(userId, trail);
+      setHikeLogged(true);
+    } catch (logError) {
+      setHikeLogError(logError instanceof Error ? logError.message : 'Unable to save this hike.');
+    } finally {
+      setLoggingHike(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -142,6 +171,22 @@ export default function TrailDetailScreen() {
             {[trail.description, trail.location, trail.surfaceType].filter(Boolean).join(' • ')}
           </Text>
         )}
+        {hikeLogError ? <Text style={styles.hikeLogError}>{hikeLogError}</Text> : null}
+        {hikeLogged ? <Text style={styles.hikeLogSuccess}>Hike added to My Hikes.</Text> : null}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: loggingHike || hikeLogged }}
+          style={[
+            styles.logHikeButton,
+            (loggingHike || hikeLogged) && styles.logHikeButtonDisabled,
+          ]}
+          onPress={handleLogHike}
+          disabled={loggingHike || hikeLogged}
+        >
+          <Text style={styles.logHikeButtonText}>
+            {loggingHike ? 'Saving hike...' : hikeLogged ? 'Hike logged' : 'Mark as hiked'}
+          </Text>
+        </Pressable>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <Text style={styles.backButtonText}>Go Back</Text>
         </Pressable>
