@@ -58,6 +58,9 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
   - [x] Attach `RefreshControl` for **Pull-to-Refresh** functionality.
 - [x] **Trail Details Screen (GET Details)**
   - [x] Read the trail document ID from the `/trail/[id]` route and load trail details dynamically.
+- [x] **Private Trail Creation (POST)**
+  - [x] Create a user's private trail under `users/{userId}/trails`.
+  - [x] Collect trail details and plot a route by tapping valid map coordinates.
 - [x] Better UI for the trails on the map
   - [x] Dont show the red pinpoint
   - [x] Better styling of the track
@@ -79,15 +82,19 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
   - [ ] **Switch**: Add "Dog-Friendly" toggle.
 - [ ] **Form Protection & Layout UX**
   - [x] Ensure form components are properly wrapped in `KeyboardAvoidingView` to maintain input visibility.
-  - [ ] Enforce password strength / multi-rule validation on Registration.
+  - [x] Display password-strength feedback during Registration.
+  - [ ] Enforce password strength / multi-rule validation before Registration.
 
 ---
 
 ### Phase 3: Native Device Capabilities
 
-- [ ] **Choose & Implement Native Functionality**:s
+- [x] **Location and Maps**
+  - [x] Use MapView to plot routes for private trails.
+  - [x] Use Expo Location to request the user's location on trail details.
+- [ ] **Additional Native Functionality**
+  - [ ] **Option A (Sensors)**: Integrate `expo-pedometer` for real-time step tracking during hikes.
   - [ ] **Option B (Camera)**: Integrate `expo-image-picker` allowing users to capture and attach trail photos to logs.
-  - [ ] **Option C (Location/Maps)**: Integrate `expo-location` or MapView for trailhead discovery and route plotting.
 
 ---
 
