@@ -4,9 +4,11 @@ import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Text, View, Modal, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TrailQueryState from '@/components/TrailQueryState';
+import FavoriteButton from '@/components/FavoriteButton';
 import { fetchTrails } from '@/data/trails';
 import { colors, spacing } from '@/theme';
 import styles from '@/styles/map.styles';
+import useFavorites from '@/hooks/useFavorites';
 import { Funnel } from 'lucide-react-native';
 
 // improve highlighted trail UI
@@ -108,6 +110,8 @@ function getInitialRegion(trails) {
 export default function MapTabScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { favoriteTrailIds, pendingTrailIds, loadingFavorites, favoriteError, toggleFavorite } =
+    useFavorites();
   const [trails, setTrails] = useState([]);
   const [visibleRegion, setVisibleRegion] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -159,12 +163,10 @@ export default function MapTabScreen() {
     [trailsForDifficulty, visibleRegion]
   );
   const selectedTrail = mappableTrails.find((trail) => trail.id === selectedTrailId);
-  const selectedTrailCoordinates =
-    selectedTrail?.coordinates.filter(isValidCoordinate) ?? [];
+  const selectedTrailCoordinates = selectedTrail?.coordinates.filter(isValidCoordinate) ?? [];
   const fallbackCoordinate = mappableTrails[0]?.coordinates.find(isValidCoordinate);
   const isSelectedTrailVisible = Boolean(
-    selectedTrail &&
-      (activeDifficulty === 'All' || selectedTrail.difficulty === activeDifficulty)
+    selectedTrail && (activeDifficulty === 'All' || selectedTrail.difficulty === activeDifficulty)
   );
 
   const highlightSelectedTrailHandler = (trailId, showDetails = true) => {
@@ -204,8 +206,7 @@ export default function MapTabScreen() {
       >
         {mappableTrails.map((trail) => {
           const coordinates = trail.coordinates.filter(isValidCoordinate);
-          const isVisible =
-            activeDifficulty === 'All' || trail.difficulty === activeDifficulty;
+          const isVisible = activeDifficulty === 'All' || trail.difficulty === activeDifficulty;
 
           return (
             <Polyline
@@ -221,9 +222,7 @@ export default function MapTabScreen() {
         <Polyline
           key="selected-trail-highlight"
           coordinates={
-            selectedTrailCoordinates.length
-              ? selectedTrailCoordinates
-              : [fallbackCoordinate]
+            selectedTrailCoordinates.length ? selectedTrailCoordinates : [fallbackCoordinate]
           }
           strokeColor={isSelectedTrailVisible ? colors.surface : 'transparent'}
           strokeWidth={isSelectedTrailVisible ? 10 : 0}
@@ -232,14 +231,10 @@ export default function MapTabScreen() {
         <Polyline
           key="selected-trail-route"
           coordinates={
-            selectedTrailCoordinates.length
-              ? selectedTrailCoordinates
-              : [fallbackCoordinate]
+            selectedTrailCoordinates.length ? selectedTrailCoordinates : [fallbackCoordinate]
           }
           strokeColor={
-            isSelectedTrailVisible
-              ? polylineColorHandler(selectedTrail.difficulty)
-              : 'transparent'
+            isSelectedTrailVisible ? polylineColorHandler(selectedTrail.difficulty) : 'transparent'
           }
           strokeWidth={isSelectedTrailVisible ? 6 : 0}
           tappable={false}
@@ -253,8 +248,7 @@ export default function MapTabScreen() {
         />
         <Marker
           coordinate={
-            selectedTrailCoordinates[selectedTrailCoordinates.length - 1] ??
-            fallbackCoordinate
+            selectedTrailCoordinates[selectedTrailCoordinates.length - 1] ?? fallbackCoordinate
           }
           opacity={isSelectedTrailVisible ? 1 : 0}
           anchor={{ x: 0.5, y: 1 }}
@@ -291,23 +285,34 @@ export default function MapTabScreen() {
         <View style={styles.filterModalOverlay}>
           <View style={styles.filterModalCard}>
             <Text style={styles.filterModalText}>Difficulty:</Text>
-              <View style={[styles.filterRow, {}]}>
-                {['All', 'Beginner', 'Intermediate', 'Expert'].map((diff) => (
-                  <Pressable
-                    key={diff}
-                    style={({pressed}) => [
-                      {backgroundColor: colors.surface, padding: spacing.sm, borderRadius: spacing.sm, margin: spacing.xs},
-                      pressed && {opacity: 0.6},
-                      diff === 'All' ? {borderWidth: 2, borderColor: colors.black} :
-                      diff === 'Beginner' ? {borderWidth: 2, borderColor: colors.mapRouteBeginner} :
-                      diff === 'Intermediate' ? {borderWidth: 2, borderColor: colors.mapRouteIntermediate} :
-                      diff === 'Expert' ? {borderWidth: 2, borderColor: colors.mapRouteExpert} : {}]}
-                    onPress={() => setActiveDifficulty(diff)}
-                  >
-                    <Text style={{fontWeight: '400'}}>{diff}</Text>
-                  </Pressable>
-                ))}
-              </View>
+            <View style={[styles.filterRow, {}]}>
+              {['All', 'Beginner', 'Intermediate', 'Expert'].map((diff) => (
+                <Pressable
+                  key={diff}
+                  style={({ pressed }) => [
+                    {
+                      backgroundColor: colors.surface,
+                      padding: spacing.sm,
+                      borderRadius: spacing.sm,
+                      margin: spacing.xs,
+                    },
+                    pressed && { opacity: 0.6 },
+                    diff === 'All'
+                      ? { borderWidth: 2, borderColor: colors.black }
+                      : diff === 'Beginner'
+                        ? { borderWidth: 2, borderColor: colors.mapRouteBeginner }
+                        : diff === 'Intermediate'
+                          ? { borderWidth: 2, borderColor: colors.mapRouteIntermediate }
+                          : diff === 'Expert'
+                            ? { borderWidth: 2, borderColor: colors.mapRouteExpert }
+                            : {},
+                  ]}
+                  onPress={() => setActiveDifficulty(diff)}
+                >
+                  <Text style={{ fontWeight: '400' }}>{diff}</Text>
+                </Pressable>
+              ))}
+            </View>
             <Pressable style={styles.filterModalClose} onPress={() => setShowFilterModal(false)}>
               <Text style={styles.filterModalCloseText}>Close</Text>
             </Pressable>
@@ -318,10 +323,7 @@ export default function MapTabScreen() {
       {showTrailDetailsModal && (
         <View
           pointerEvents="box-none"
-          style={[
-            styles.trailDetailsModalOverlay,
-            { paddingBottom: insets.bottom + spacing.sm },
-          ]}
+          style={[styles.trailDetailsModalOverlay, { paddingBottom: insets.bottom + spacing.sm }]}
         >
           <View style={styles.trailDetailsModalCard}>
             <View style={styles.trailDetailsModalHandle} />
@@ -331,6 +333,12 @@ export default function MapTabScreen() {
                   {selectedTrail.name}
                 </Text>
               </View>
+              <FavoriteButton
+                trail={selectedTrail}
+                isFavorite={favoriteTrailIds.has(selectedTrail.id)}
+                pending={loadingFavorites || pendingTrailIds.has(selectedTrail.id)}
+                onToggle={toggleFavorite}
+              />
               <View
                 style={[
                   styles.trailDetailsDifficultyBadge,
@@ -347,6 +355,7 @@ export default function MapTabScreen() {
                 </Text>
               </View>
             </View>
+            {favoriteError ? <Text style={styles.favoriteError}>{favoriteError}</Text> : null}
             {selectedTrail.location ? (
               <Text style={styles.trailDetailsLocation} numberOfLines={2}>
                 {selectedTrail.location}

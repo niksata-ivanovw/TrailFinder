@@ -172,6 +172,11 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     lineHeight: 26,
   },
+  favoriteError: {
+    marginTop: spacing.sm,
+    color: colors.danger,
+    fontSize: typography.caption,
+  },
   trailDetailsDifficultyBadge: {
     marginTop: spacing.xs,
     paddingHorizontal: spacing.sm,

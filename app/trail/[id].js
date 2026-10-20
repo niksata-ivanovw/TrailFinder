@@ -4,10 +4,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import TrailQueryState from '@/components/TrailQueryState';
-import { logCompletedHike } from '@/data/hikes';
+import FavoriteButton from '@/components/FavoriteButton';
+import { fetchCompletedHikes, logCompletedHike, removeCompletedHike } from '@/data/hikes';
 import { fetchTrail } from '@/data/trails';
 import { colors } from '@/theme';
 import styles from '@/styles/trail-detail.styles';
+import useFavorites from '@/hooks/useFavorites';
 import { auth } from '../../firebaseConfig';
 
 function isValidCoordinate(point) {
@@ -23,6 +25,8 @@ function isValidCoordinate(point) {
 
 export default function TrailDetailScreen() {
   const router = useRouter();
+  const { favoriteTrailIds, pendingTrailIds, loadingFavorites, favoriteError, toggleFavorite } =
+    useFavorites();
   const { id } = useLocalSearchParams();
   const trailId = Array.isArray(id) ? id[0] : id;
   const [trail, setTrail] = useState(null);
@@ -30,7 +34,8 @@ export default function TrailDetailScreen() {
   const [error, setError] = useState(null);
   const [hasLocationPermission, setHasLocationPermission] = useState(false);
   const [loggingHike, setLoggingHike] = useState(false);
-  const [hikeLogged, setHikeLogged] = useState(false);
+  const [hikeRecordIds, setHikeRecordIds] = useState([]);
+  const [removingHike, setRemovingHike] = useState(false);
   const [hikeLogError, setHikeLogError] = useState(null);
 
   const loadTrail = useCallback(async () => {
@@ -54,6 +59,21 @@ export default function TrailDetailScreen() {
         );
       }
       setTrail(fetchedTrail);
+      const userId = auth.currentUser?.uid;
+      if (userId) {
+        try {
+          const hikes = await fetchCompletedHikes(userId);
+          setHikeRecordIds(hikes.filter((hike) => hike.trailId === trailId).map((hike) => hike.id));
+        } catch (historyError) {
+          setHikeLogError(
+            historyError instanceof Error
+              ? historyError.message
+              : 'Unable to load your hike history.'
+          );
+        }
+      } else {
+        setHikeRecordIds([]);
+      }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load this trail.');
     } finally {
@@ -66,7 +86,7 @@ export default function TrailDetailScreen() {
   }, [loadTrail]);
 
   useEffect(() => {
-    setHikeLogged(false);
+    setHikeRecordIds([]);
     setHikeLogError(null);
   }, [trailId]);
 
@@ -119,12 +139,34 @@ export default function TrailDetailScreen() {
     setLoggingHike(true);
     setHikeLogError(null);
     try {
-      await logCompletedHike(userId, trail);
-      setHikeLogged(true);
+      const hike = await logCompletedHike(userId, trail);
+      setHikeRecordIds((currentIds) => [hike.id, ...currentIds]);
     } catch (logError) {
       setHikeLogError(logError instanceof Error ? logError.message : 'Unable to save this hike.');
     } finally {
       setLoggingHike(false);
+    }
+  };
+
+  const handleRemoveHike = async () => {
+    const userId = auth.currentUser?.uid;
+    const hikeRecordId = hikeRecordIds[0];
+    if (!userId || !hikeRecordId) {
+      setHikeLogError('Sign in to remove this hike from your history.');
+      return;
+    }
+
+    setRemovingHike(true);
+    setHikeLogError(null);
+    try {
+      await removeCompletedHike(userId, hikeRecordId);
+      setHikeRecordIds((currentIds) => currentIds.filter((id) => id !== hikeRecordId));
+    } catch (removeError) {
+      setHikeLogError(
+        removeError instanceof Error ? removeError.message : 'Unable to remove this hike.'
+      );
+    } finally {
+      setRemovingHike(false);
     }
   };
 
@@ -161,7 +203,16 @@ export default function TrailDetailScreen() {
 
       {/* Floating Info Card */}
       <View style={styles.infoCard}>
-        <Text style={styles.title}>{trail.name}</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{trail.name}</Text>
+          <FavoriteButton
+            trail={trail}
+            isFavorite={favoriteTrailIds.has(trail.id)}
+            pending={loadingFavorites || pendingTrailIds.has(trail.id)}
+            onToggle={toggleFavorite}
+          />
+        </View>
+        {favoriteError ? <Text style={styles.favoriteError}>{favoriteError}</Text> : null}
         <Text style={styles.stats}>
           {trail.difficulty} • {trail.distanceMiles} mi
           {trail.elevationGainFt == null ? '' : ` • ${trail.elevationGainFt} ft gain`}
@@ -172,19 +223,39 @@ export default function TrailDetailScreen() {
           </Text>
         )}
         {hikeLogError ? <Text style={styles.hikeLogError}>{hikeLogError}</Text> : null}
-        {hikeLogged ? <Text style={styles.hikeLogSuccess}>Hike added to My Hikes.</Text> : null}
+        {hikeRecordIds.length > 0 ? (
+          <>
+            <Text style={styles.hikeLogSuccess}>
+              {hikeRecordIds.length === 1
+                ? '1 hike logged for this trail.'
+                : `${hikeRecordIds.length} hikes logged for this trail.`}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: removingHike }}
+              style={[styles.removeHikeButton, removingHike && styles.logHikeButtonDisabled]}
+              onPress={handleRemoveHike}
+              disabled={removingHike}
+            >
+              <Text style={styles.removeHikeButtonText}>
+                {removingHike ? 'Removing hike...' : 'Remove hike'}
+              </Text>
+            </Pressable>
+          </>
+        ) : null}
         <Pressable
           accessibilityRole="button"
-          accessibilityState={{ disabled: loggingHike || hikeLogged }}
-          style={[
-            styles.logHikeButton,
-            (loggingHike || hikeLogged) && styles.logHikeButtonDisabled,
-          ]}
+          accessibilityState={{ disabled: loggingHike }}
+          style={[styles.logHikeButton, loggingHike && styles.logHikeButtonDisabled]}
           onPress={handleLogHike}
-          disabled={loggingHike || hikeLogged}
+          disabled={loggingHike}
         >
           <Text style={styles.logHikeButtonText}>
-            {loggingHike ? 'Saving hike...' : hikeLogged ? 'Hike logged' : 'Mark as hiked'}
+            {loggingHike
+              ? 'Saving hike...'
+              : hikeRecordIds.length > 0
+                ? 'Log another hike'
+                : 'Mark as hiked'}
           </Text>
         </Pressable>
         <Pressable style={styles.backButton} onPress={() => router.back()}>

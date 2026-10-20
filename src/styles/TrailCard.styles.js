@@ -3,6 +3,7 @@ import { colors, spacing, typography } from '@/theme';
 
 const styles = StyleSheet.create({
   card: {
+    position: 'relative',
     backgroundColor: colors.surface,
     borderRadius: spacing.md,
     marginBottom: spacing.lg,
@@ -11,6 +12,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: spacing.sm,
     elevation: 3,
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
   },
   image: { width: '100%', height: 160 },
   content: { padding: spacing.md },

@@ -59,10 +59,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.divider,
   },
   sectionTitle: {
-    marginTop: spacing.xl,
-    marginBottom: spacing.md,
     color: colors.textProfileHeading,
     fontSize: typography.subtitle,
+    fontWeight: '700',
+  },
+  sortRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+    marginBottom: spacing.md,
+  },
+  sortButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.primaryLight,
+    borderRadius: spacing.lg,
+  },
+  sortButtonPressed: {
+    opacity: 0.7,
+  },
+  sortButtonText: {
+    color: colors.primary,
+    fontSize: typography.caption,
     fontWeight: '700',
   },
   hikeCard: {

@@ -18,7 +18,24 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
-  title: { fontSize: typography.subtitle, fontWeight: 'bold', color: colors.text, marginBottom: 4 },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  title: {
+    flex: 1,
+    fontSize: typography.subtitle,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  favoriteError: {
+    marginTop: spacing.xs,
+    color: colors.danger,
+    fontSize: typography.caption,
+  },
   stats: { fontSize: typography.small, color: colors.textSecondary },
   description: { marginTop: spacing.sm, fontSize: typography.small, color: colors.textSecondary },
   logHikeButton: {
@@ -33,6 +50,20 @@ const styles = StyleSheet.create({
   logHikeButtonDisabled: { opacity: 0.65 },
   logHikeButtonText: {
     color: colors.primary,
+    fontSize: typography.small,
+    fontWeight: '700',
+  },
+  removeHikeButton: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.danger,
+  },
+  removeHikeButtonText: {
+    color: colors.danger,
     fontSize: typography.small,
     fontWeight: '700',
   },

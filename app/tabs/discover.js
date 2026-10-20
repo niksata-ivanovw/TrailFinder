@@ -5,11 +5,13 @@ import TrailQueryState from '@/components/TrailQueryState';
 import { fetchTrails } from '@/data/trails';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '@/styles/discover.styles';
-
+import useFavorites from '@/hooks/useFavorites';
 
 const DIFFICULTIES = ['All', 'Beginner', 'Intermediate', 'Expert'];
 
 export default function DiscoverScreen() {
+  const { favoriteTrailIds, pendingTrailIds, loadingFavorites, favoriteError, toggleFavorite } =
+    useFavorites();
   const [trails, setTrails] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
@@ -68,12 +70,20 @@ export default function DiscoverScreen() {
             </Pressable>
           ))}
         </View>
+        {favoriteError ? <Text style={styles.favoriteError}>{favoriteError}</Text> : null}
       </View>
 
       <FlatList
         data={filteredTrails}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <TrailCard trail={item} />}
+        renderItem={({ item }) => (
+          <TrailCard
+            trail={item}
+            isFavorite={favoriteTrailIds.has(item.id)}
+            favoritePending={loadingFavorites || pendingTrailIds.has(item.id)}
+            onToggleFavorite={toggleFavorite}
+          />
+        )}
         contentContainerStyle={[
           styles.listContent,
           filteredTrails.length === 0 && styles.emptyListContent,

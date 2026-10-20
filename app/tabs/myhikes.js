@@ -24,9 +24,23 @@ function formatCompletedDate(timestamp) {
     : 'Recently completed';
 }
 
+function getCompletedAtMillis(timestamp) {
+  if (typeof timestamp?.toMillis === 'function') {
+    return timestamp.toMillis();
+  }
+  if (typeof timestamp?.toDate === 'function') {
+    return timestamp.toDate().getTime();
+  }
+  if (timestamp instanceof Date) {
+    return timestamp.getTime();
+  }
+  return null;
+}
+
 export default function MyHikesScreen() {
   const router = useRouter();
   const [hikes, setHikes] = useState([]);
+  const [sortNewestFirst, setSortNewestFirst] = useState(true);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -66,6 +80,13 @@ export default function MyHikesScreen() {
     (total, hike) => total + (Number.isFinite(hike.distanceMiles) ? hike.distanceMiles : 0),
     0
   );
+  const sortedHikes = [...hikes].sort((firstHike, secondHike) => {
+    const firstDate = getCompletedAtMillis(firstHike.completedAt);
+    const secondDate = getCompletedAtMillis(secondHike.completedAt);
+    if (firstDate == null) return secondDate == null ? 0 : 1;
+    if (secondDate == null) return -1;
+    return sortNewestFirst ? secondDate - firstDate : firstDate - secondDate;
+  });
 
   const handleRemoveHike = async () => {
     const userId = auth.currentUser?.uid;
@@ -138,7 +159,7 @@ export default function MyHikesScreen() {
         </View>
       </Modal>
       <FlatList
-        data={hikes}
+        data={sortedHikes}
         keyExtractor={(hike) => hike.id}
         contentContainerStyle={[styles.listContent, hikes.length === 0 && styles.emptyListContent]}
         showsVerticalScrollIndicator={false}
@@ -164,7 +185,28 @@ export default function MyHikesScreen() {
                 <Text style={styles.summaryLabel}>MILES LOGGED</Text>
               </View>
             </View>
-            {hikes.length > 0 ? <Text style={styles.sectionTitle}>Recently completed</Text> : null}
+            {hikes.length > 0 ? (
+              <View style={styles.sortRow}>
+                <Text style={styles.sectionTitle}>Hike history</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Sort by date added, ${
+                    sortNewestFirst ? 'newest first' : 'oldest first'
+                  }. Tap to reverse order.`}
+                  onPress={() => setSortNewestFirst((isNewestFirst) => !isNewestFirst)}
+                  style={({ pressed }) => [styles.sortButton, pressed && styles.sortButtonPressed]}
+                >
+                  <Ionicons
+                    name={sortNewestFirst ? 'arrow-down' : 'arrow-up'}
+                    size={15}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.sortButtonText}>
+                    Date added · {sortNewestFirst ? 'Newest' : 'Oldest'}
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
             {error ? (
               <View style={styles.errorCard}>
                 <Text style={styles.errorText}>{error}</Text>

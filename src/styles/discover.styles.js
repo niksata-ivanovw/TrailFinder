@@ -21,6 +21,11 @@ const styles = StyleSheet.create({
   activeChip: { backgroundColor: colors.primary },
   filterText: { color: colors.textSecondary, fontSize: typography.small, fontWeight: '500' },
   activeText: { color: colors.textOnPrimary },
+  favoriteError: {
+    marginTop: spacing.sm,
+    color: colors.danger,
+    fontSize: typography.caption,
+  },
   listContent: { padding: spacing.lg },
   emptyListContent: { flexGrow: 1 },
 });

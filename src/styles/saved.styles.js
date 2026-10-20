@@ -1,17 +1,36 @@
 import { StyleSheet } from 'react-native';
-import { colors, typography } from '@/theme';
+import { colors, spacing, typography } from '@/theme';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: colors.background,
   },
-  text: {
+  listContent: {
+    padding: spacing.lg,
+  },
+  emptyListContent: {
+    flexGrow: 1,
+  },
+  header: {
+    marginBottom: spacing.lg,
+  },
+  title: {
     fontSize: typography.large,
     fontWeight: 'bold',
-    color: colors.textDark,
+    color: colors.textProfileHeading,
+  },
+  subtitle: {
+    marginTop: spacing.xs,
+    fontSize: typography.small,
+    color: colors.textSecondary,
+  },
+  searchInput: {
+    marginTop: spacing.md,
+    backgroundColor: colors.searchBackground,
+    padding: spacing.md,
+    borderRadius: spacing.sm,
+    fontSize: typography.body,
   },
 });
 
