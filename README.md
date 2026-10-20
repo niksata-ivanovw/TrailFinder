@@ -1,6 +1,6 @@
 # TrailFinder
 
-TrailFinder is an Expo and React Native app for browsing outdoor routes around Varna, Bulgaria. Trail cards and maps load from Cloud Firestore; route accuracy depends on the data you add. Saved-trail functionality is not yet implemented.
+TrailFinder is an Expo and React Native app for discovering, saving, and tracking outdoor routes around Varna, Bulgaria. Trail cards and maps load from Cloud Firestore; route accuracy depends on the data you add.
 
 ## Current features
 
@@ -8,18 +8,20 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 - Persistent Firebase Auth sessions using React Native AsyncStorage.
 - Startup routing that restores the auth state, then shows the login screen or opens the app.
 - Map, Discover, Saved, and Profile tabs.
-- A Firestore-backed map with colored route lines by difficulty, a floating Filter action, and a route detail sheet that opens from a tapped trail. The map stays mounted while difficulty filters change.
-- A live map badge showing how many trails of the selected difficulty currently intersect the visible viewport, plus a highlighted route overlay with start/end markers for the selected trail.
-- Firestore-backed Discover trail cards with name search, difficulty filters, loading/error states, and pull-to-refresh.
+- A Firestore-backed map with colored route lines, a reusable filter modal, a viewport trail count, and a route detail sheet with start/end markers.
+- Shared filters on Map, Discover, Saved, and My Hikes for difficulty, distance, elevation gain, and location. Discover and Map also filter by saved status.
+- Discover trail cards with name search, bookmark toggles, loading/error states, and pull-to-refresh.
+- User-specific Firestore bookmarks, available from trail cards, map details, trail details, and the Saved tab. Saved includes search, filters, a saved-trail count, and pull-to-refresh.
+- A My Hikes history where users can log the same trail multiple times, remove individual entries, sort by date added, and filter by trail attributes.
 - Firestore-backed trail detail maps with validated route lines and waypoint markers, plus the user location when permission is granted.
-- Profile details, shortcuts to Saved and Discover, and working sign-out with confirmation.
+- Profile details, shortcuts to Saved and Discover, and sign-out with confirmation.
 - Shared color, spacing, and typography tokens in `src/theme/`; styles are kept in `src/styles/`.
 
 ### Prototype limitations
 
 - Firestore trail coordinates and waypoint positions must be verified before use for navigation. `src/data/dummyTrails.js` is retained only as illustrative sample data, and app screens do not read it.
 - Elevation gains can be estimates; route difficulty, surface, access rights, connectivity, and current passability are not independently verified.
-- The Saved tab is a placeholder; bookmarking and offline maps are not implemented.
+- Saved trails and hike history require a signed-in user and working Firestore access. Offline maps are not implemented.
 - Featured trail images are remote Unsplash URLs and require an internet connection.
 - OpenStreetMap-derived route data requires attribution and is subject to the ODbL. Verify that attribution is visible wherever this route data is shown.
 
@@ -57,10 +59,11 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
   - [x] Better styling of the track
 - [x] Fix Dummy tracks' coordinates so they are realistic
 - [x] Add map difficulty filtering without remounting the map
-- [ ] **Log Hike Modal & Operations (POST, PUT/PATCH, DELETE)**
-  - [ ] Build/connect the modal screen for creating new hike logs (**POST**).
+- [x] **Log Hike Operations (POST, DELETE)**
+  - [x] Allow users to log a trail multiple times as separate hike records.
+  - [x] Allow users to remove individual entries from their history (**DELETE**).
+  - [ ] Build a dedicated modal screen for creating new hike logs (**POST**).
   - [ ] Add ability for users to update notes/ratings on existing logs (**PUT/PATCH**).
-  - [ ] Implement deletion functionality to remove entries from history (**DELETE**).
 
 
 ---
@@ -85,11 +88,15 @@ TrailFinder is an Expo and React Native app for browsing outdoor routes around V
 ---
 
 ### Phase 4: Bookmarks & Profile
-- [ ] **Offline Caching & Bookmarks**
-  - [ ] Implement local storage bookmarking for favorite trails using `@react-native-async-storage/async-storage` or `expo-sqlite`.
+- [x] **Cloud Bookmarks**
+  - [x] Save favorite trails in each signed-in user's Firestore favorites collection.
+  - [x] Add bookmark toggles to Discover cards, Map trail details, and the full trail page.
+  - [x] Build Saved with search, filters, and pull-to-refresh.
+- [ ] **Offline Caching**
+  - [ ] Cache saved trails locally for offline access.
 - [ ] **Profile Screen**
   - [x] Display account details, links to Saved and Discover, and sign-out confirmation.
-  - [ ] Display user activity stats and a functional saved trails list.
+  - [ ] Display user activity stats.
 
 ---
 
@@ -157,7 +164,14 @@ Create a `trails` collection in Cloud Firestore. Each document ID is used as the
 }
 ```
 
-`elevationGainFt` can be `null` when elevation has not been verified. The Map tab fetches trails from the `trails` collection, keeps valid route polylines mounted, and filters their visibility by difficulty. Its badge counts trails of the selected difficulty that intersect the current viewport; it does not automatically move the camera when a difficulty is selected. Tapping a visible route line opens a detail sheet with the route summary, distance, elevation, and a link to the full trail view. The Discover tab independently supports name search and difficulty filters. The optional `description` field is shown with the trail location and surface type on the detail screen. Firestore reads are implemented in `src/data/trails.js`. Configure Firestore Security Rules to allow the intended reads; do not leave the database in test mode for production.
+`elevationGainFt` can be `null` when elevation has not been verified. Map, Discover, Saved, and My Hikes share filters for difficulty, distance, elevation gain, and location; Discover and Map can additionally filter by saved status. Map routes are hidden when they do not match the selected filters. Its badge counts matching trails that intersect the current viewport; selecting filters does not automatically move the camera. Tapping a visible route line opens a detail sheet. The optional `description` field is shown with the trail location and surface type on the detail screen. Firestore trail reads are implemented in `src/data/trails.js`.
+
+User-specific data is stored under `users/{userId}` in Cloud Firestore:
+
+- `favorites/{trailId}` stores a bookmark and the trail summary needed to render Saved cards.
+- `hikes/{hikeId}` stores one completed-hike entry. Repeated hikes on the same trail use separate documents, each with its own `completedAt` timestamp.
+
+Configure Firestore Security Rules to restrict user data to its owner and allow the intended trail reads; do not leave the database in test mode for production.
 
 ### One-time replacement with mapped Varna routes
 
@@ -205,11 +219,15 @@ These scripts require the corresponding platform development environment. Native
 app/                         Expo Router routes and layouts
   index.js                   Auth-state check and login entry route
   register.js                Registration route
-  tabs/                      Map, Discover, Saved, and Profile
+  tabs/                      Map, My Hikes, Discover, Saved, and Profile
   trail/[id].js              Trail detail map
 src/
   components/                Shared UI, trail cards, and query-state components
   data/trails.js              Firestore trail queries
+  data/favorites.js           Per-user Firestore bookmarks
+  data/hikes.js               Per-user completed-hike history
+  components/TrailFilterModal.js
+                              Shared difficulty, distance, elevation, location, and saved filters
   data/dummyTrails.js         Illustrative sample data (unused by app screens)
   data/varnaMappedTrails.js   OpenStreetMap-derived Varna route dataset
   data/replaceTrails.js       Guarded one-time Firestore replacement helper
