@@ -124,13 +124,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.md,
   },
-  removeHikeButton: {
-    width: 44,
+  hikeActions: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.xs,
+    paddingHorizontal: spacing.xs,
   },
-  removeHikeButtonPressed: {
+  hikeActionButton: {
+    width: 38,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hikeActionButtonPressed: {
     opacity: 0.55,
   },
   hikeDateRow: {
@@ -154,11 +159,23 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: typography.small,
   },
+  hikeNotes: {
+    marginTop: spacing.xs,
+    color: colors.textMuted,
+    fontSize: typography.caption,
+    lineHeight: 17,
+  },
   hikeMeta: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: spacing.md,
     marginTop: spacing.md,
+  },
+  ratingSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   hikeMetaText: {
     color: colors.textStrong,

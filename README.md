@@ -7,12 +7,12 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
 - Firebase email-and-password registration and sign-in.
 - Persistent Firebase Auth sessions using React Native AsyncStorage.
 - Startup routing that restores the auth state, then shows the login screen or opens the app.
-- Map, Discover, Saved, and Profile tabs.
+- Map, My Hikes, Discover, Saved, and Profile tabs.
 - A Firestore-backed map with colored route lines, a reusable filter modal, a viewport trail count, and a route detail sheet with start/end markers.
 - Shared filters on Map, Discover, Saved, and My Hikes for difficulty, distance, elevation gain, and location. Discover and Map also filter by saved status.
 - Discover trail cards with name search, bookmark toggles, loading/error states, and pull-to-refresh.
 - User-specific Firestore bookmarks, available from trail cards, map details, trail details, and the Saved tab. Saved includes search, filters, a saved-trail count, and pull-to-refresh.
-- A My Hikes history where users can log the same trail multiple times, remove individual entries, sort by date added, and filter by trail attributes.
+- A My Hikes history where users can log the same trail multiple times with optional notes and a 1–5 star rating, edit each entry, remove individual entries, sort by date added, and filter by trail attributes.
 - Firestore-backed trail detail maps with validated route lines and waypoint markers, plus the user location when permission is granted.
 - Profile details, shortcuts to Saved and Discover, and sign-out with confirmation.
 - Shared color, spacing, and typography tokens in `src/theme/`; styles are kept in `src/styles/`.
@@ -59,12 +59,11 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
   - [x] Better styling of the track
 - [x] Fix Dummy tracks' coordinates so they are realistic
 - [x] Add map difficulty filtering without remounting the map
-- [x] **Log Hike Operations (POST, DELETE)**
+- [x] **Log Hike Operations (POST, PUT/PATCH, DELETE)**
   - [x] Allow users to log a trail multiple times as separate hike records.
   - [x] Allow users to remove individual entries from their history (**DELETE**).
-  - [ ] Build a dedicated modal screen for creating new hike logs (**POST**).
-  - [ ] Add ability for users to update notes/ratings on existing logs (**PUT/PATCH**).
-
+  - [x] Build a dedicated modal screen for creating new hike logs (**POST**).
+  - [x] Add ability for users to update notes/ratings on existing logs (**PUT/PATCH**).
 
 ---
 
@@ -169,7 +168,7 @@ Create a `trails` collection in Cloud Firestore. Each document ID is used as the
 User-specific data is stored under `users/{userId}` in Cloud Firestore:
 
 - `favorites/{trailId}` stores a bookmark and the trail summary needed to render Saved cards.
-- `hikes/{hikeId}` stores one completed-hike entry. Repeated hikes on the same trail use separate documents, each with its own `completedAt` timestamp.
+- `hikes/{hikeId}` stores one completed-hike entry, including optional `notes` and a 1–5 `rating`. Repeated hikes on the same trail use separate documents, each with its own `completedAt` timestamp. New hike entries are created from the trail detail screen; existing entries can be edited in My Hikes.
 
 Configure Firestore Security Rules to restrict user data to its owner and allow the intended trail reads; do not leave the database in test mode for production.
 

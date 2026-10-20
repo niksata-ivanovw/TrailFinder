@@ -15,7 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth } from '../../firebaseConfig';
 import TrailFilterButton from '@/components/TrailFilterButton';
 import TrailFilterModal from '@/components/TrailFilterModal';
-import { fetchCompletedHikes, removeCompletedHike } from '@/data/hikes';
+import HikeLogModal from '@/components/HikeLogModal';
+import { fetchCompletedHikes, removeCompletedHike, updateCompletedHike } from '@/data/hikes';
 import { countActiveTrailFilters, DEFAULT_TRAIL_FILTERS, filterTrails } from '@/utils/trailFilters';
 import { colors } from '@/theme';
 import styles from '@/styles/myhikes.styles';
@@ -49,6 +50,9 @@ export default function MyHikesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [hikeToEdit, setHikeToEdit] = useState(null);
+  const [updatingHike, setUpdatingHike] = useState(false);
+  const [editError, setEditError] = useState(null);
   const [hikeToRemove, setHikeToRemove] = useState(null);
   const [removing, setRemoving] = useState(false);
   const [removeError, setRemoveError] = useState(null);
@@ -113,6 +117,32 @@ export default function MyHikesScreen() {
       );
     } finally {
       setRemoving(false);
+    }
+  };
+
+  const handleUpdateHike = async ({ notes, rating }) => {
+    const userId = auth.currentUser?.uid;
+    if (!userId || !hikeToEdit) {
+      setEditError('Sign in to update a hike in your history.');
+      return;
+    }
+
+    setUpdatingHike(true);
+    setEditError(null);
+    try {
+      await updateCompletedHike(userId, hikeToEdit.id, { notes, rating });
+      setHikes((currentHikes) =>
+        currentHikes.map((hike) =>
+          hike.id === hikeToEdit.id ? { ...hike, notes: notes.trim(), rating } : hike
+        )
+      );
+      setHikeToEdit(null);
+    } catch (updateError) {
+      setEditError(
+        updateError instanceof Error ? updateError.message : 'Unable to update this hike.'
+      );
+    } finally {
+      setUpdatingHike(false);
     }
   };
 
@@ -262,6 +292,11 @@ export default function MyHikesScreen() {
                   {item.location}
                 </Text>
               ) : null}
+              {item.notes ? (
+                <Text style={styles.hikeNotes} numberOfLines={2}>
+                  {item.notes}
+                </Text>
+              ) : null}
               <View style={styles.hikeMeta}>
                 {item.difficulty ? (
                   <Text style={styles.hikeMetaText}>{item.difficulty}</Text>
@@ -269,23 +304,45 @@ export default function MyHikesScreen() {
                 {Number.isFinite(item.distanceMiles) ? (
                   <Text style={styles.hikeMetaText}>{item.distanceMiles} mi</Text>
                 ) : null}
+                {Number.isInteger(item.rating) ? (
+                  <View style={styles.ratingSummary}>
+                    <Ionicons name="star" size={13} color={colors.warning} />
+                    <Text style={styles.hikeMetaText}>{item.rating}/5</Text>
+                  </View>
+                ) : null}
                 <Ionicons name="chevron-forward" size={16} color={colors.textIconMuted} />
               </View>
             </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Remove ${item.trailName || 'hike'} from My Hikes`}
-              style={({ pressed }) => [
-                styles.removeHikeButton,
-                pressed && styles.removeHikeButtonPressed,
-              ]}
-              onPress={() => {
-                setRemoveError(null);
-                setHikeToRemove(item);
-              }}
-            >
-              <Ionicons name="trash-outline" size={19} color={colors.danger} />
-            </Pressable>
+            <View style={styles.hikeActions}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Edit notes and rating for ${item.trailName || 'hike'}`}
+                style={({ pressed }) => [
+                  styles.hikeActionButton,
+                  pressed && styles.hikeActionButtonPressed,
+                ]}
+                onPress={() => {
+                  setEditError(null);
+                  setHikeToEdit(item);
+                }}
+              >
+                <Ionicons name="create-outline" size={19} color={colors.primary} />
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Remove ${item.trailName || 'hike'} from My Hikes`}
+                style={({ pressed }) => [
+                  styles.hikeActionButton,
+                  pressed && styles.hikeActionButtonPressed,
+                ]}
+                onPress={() => {
+                  setRemoveError(null);
+                  setHikeToRemove(item);
+                }}
+              >
+                <Ionicons name="trash-outline" size={19} color={colors.danger} />
+              </Pressable>
+            </View>
           </View>
         )}
         ListEmptyComponent={
@@ -330,6 +387,23 @@ export default function MyHikesScreen() {
           setFilters(nextFilters);
           setShowFilterModal(false);
         }}
+      />
+      <HikeLogModal
+        visible={Boolean(hikeToEdit)}
+        title="Edit hike"
+        trailName={hikeToEdit?.trailName || 'Completed trail'}
+        initialNotes={hikeToEdit?.notes ?? ''}
+        initialRating={hikeToEdit?.rating ?? null}
+        submitLabel="Save changes"
+        saving={updatingHike}
+        error={editError}
+        onClose={() => {
+          if (!updatingHike) {
+            setHikeToEdit(null);
+            setEditError(null);
+          }
+        }}
+        onSubmit={handleUpdateHike}
       />
     </SafeAreaView>
   );
