@@ -98,6 +98,13 @@ export default function ProfileScreen() {
         <Text style={styles.sectionTitle}>Your TrailFinder</Text>
         <View style={styles.shortcutsCard}>
           <ProfileLink
+            icon="add-circle-outline"
+            title="Create a private trail"
+            subtitle="Plot a route and add your own trail details"
+            onPress={() => router.push('/trail/create')}
+          />
+          <View style={styles.divider} />
+          <ProfileLink
             icon="bookmark-outline"
             title="Saved trails"
             subtitle="Return to your bookmarked routes"

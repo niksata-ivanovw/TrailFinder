@@ -11,8 +11,10 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
 - A Firestore-backed map with colored route lines, a reusable filter modal, a viewport trail count, and a route detail sheet with start/end markers.
 - Shared filters on Map, Discover, Saved, and My Hikes for difficulty, distance, elevation gain, and location. Discover and Map also filter by saved status.
 - Discover trail cards with name search, bookmark toggles, loading/error states, and pull-to-refresh.
+- Private trail creation from Profile, with trail details and routes plotted by tapping map points. Created trails appear only in that user's trail feeds.
 - User-specific Firestore bookmarks, available from trail cards, map details, trail details, and the Saved tab. Saved includes search, filters, a saved-trail count, and pull-to-refresh.
 - A My Hikes history where users can log the same trail multiple times with optional notes and a 1–5 star rating, edit each entry, remove individual entries, sort by date added, and filter by trail attributes.
+- Keyboard-aware forms for login, registration, trail creation, trail search and filters, and hike notes.
 - Firestore-backed trail detail maps with validated route lines and waypoint markers, plus the user location when permission is granted.
 - Profile details, shortcuts to Saved and Discover, and sign-out with confirmation.
 - Shared color, spacing, and typography tokens in `src/theme/`; styles are kept in `src/styles/`.
@@ -22,6 +24,7 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
 - Firestore trail coordinates and waypoint positions must be verified before use for navigation. `src/data/dummyTrails.js` is retained only as illustrative sample data, and app screens do not read it.
 - Elevation gains can be estimates; route difficulty, surface, access rights, connectivity, and current passability are not independently verified.
 - Saved trails and hike history require a signed-in user and working Firestore access. Offline maps are not implemented.
+- Private trail access depends on Firestore security rules restricting `users/{userId}/trails` to the authenticated owner. The app queries only the signed-in user's subcollection; client-side filtering alone is not a security boundary.
 - Featured trail images are remote Unsplash URLs and require an internet connection.
 - OpenStreetMap-derived route data requires attribution and is subject to the ODbL. Verify that attribution is visible wherever this route data is shown.
 
@@ -46,6 +49,7 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
 ## 📋 Master Project Roadmap & TODO List
 
 ### Phase 1: Cloud Backend & Firestore CRUD Integration
+
 - [x] **Firestore Configuration**
   - [x] Initialize Cloud Firestore alongside Firebase Auth in your Firebase setup.
 - [x] **Explore Screen (GET)**
@@ -68,25 +72,27 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
 ---
 
 ### Phase 2: Inputs Beyond Text & Advanced Form UX
+
 - [ ] **Update Log Hike Form Controls**
   - [ ] **Slider**: Add difficulty rating input (1–5 scale).
   - [ ] **DateTimePicker**: Add hike date selection component.
   - [ ] **Switch**: Add "Dog-Friendly" toggle.
 - [ ] **Form Protection & Layout UX**
-  - [ ] Ensure form components are properly wrapped in `KeyboardAvoidingView` to maintain input visibility.
+  - [x] Ensure form components are properly wrapped in `KeyboardAvoidingView` to maintain input visibility.
   - [ ] Enforce password strength / multi-rule validation on Registration.
 
 ---
 
 ### Phase 3: Native Device Capabilities
-- [ ] **Choose & Implement Native Functionality**:
-  - [ ] **Option A (Sensors)**: Integrate `expo-pedometer` for real-time step tracking during hikes.
+
+- [ ] **Choose & Implement Native Functionality**:s
   - [ ] **Option B (Camera)**: Integrate `expo-image-picker` allowing users to capture and attach trail photos to logs.
   - [ ] **Option C (Location/Maps)**: Integrate `expo-location` or MapView for trailhead discovery and route plotting.
 
 ---
 
 ### Phase 4: Bookmarks & Profile
+
 - [x] **Cloud Bookmarks**
   - [x] Save favorite trails in each signed-in user's Firestore favorites collection.
   - [x] Add bookmark toggles to Discover cards, Map trail details, and the full trail page.
@@ -100,10 +106,10 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
 ---
 
 ### Phase 5: Release Build & Project Finalization
+
 - [ ] **EAS Build**
   - [ ] Build the Android package (`.apk`) using EAS (`eas build -p android --profile preview`).
 - [ ] **Documentation & Requirements Verification**
-  - [ ] Confirm at least 5 commits exist across 3 separate days in Git history.
   - [ ] Complete `README.md` with setup instructions, functional guide, and the prominent link to the downloadable `.apk`.
 
 ## Setup
@@ -149,9 +155,7 @@ Create a `trails` collection in Cloud Firestore. Each document ID is used as the
   "distanceMiles": 3.2,
   "elevationGainFt": null,
   "imageUrl": "https://example.com/trail.jpg",
-  "coordinates": [
-    { "latitude": 43.205, "longitude": 27.9215 }
-  ],
+  "coordinates": [{ "latitude": 43.205, "longitude": 27.9215 }],
   "waypoints": [
     {
       "type": "trailhead",
@@ -219,10 +223,11 @@ app/                         Expo Router routes and layouts
   index.js                   Auth-state check and login entry route
   register.js                Registration route
   tabs/                      Map, My Hikes, Discover, Saved, and Profile
+  trail/create.js            Private trail creation form and route editor
   trail/[id].js              Trail detail map
 src/
   components/                Shared UI, trail cards, and query-state components
-  data/trails.js              Firestore trail queries
+  data/trails.js              Shared and per-user Firestore trail queries and private trail creation
   data/favorites.js           Per-user Firestore bookmarks
   data/hikes.js               Per-user completed-hike history
   components/TrailFilterModal.js
@@ -239,4 +244,6 @@ firebaseConfig.js            Firebase initialization and auth persistence
 
 ## Trail data
 
-The prototype trails are defined in [`src/data/dummyTrails.js`](./src/data/dummyTrails.js). Each entry includes coordinates for the map polyline and waypoint coordinates for markers. Replace these samples with verified route data before using the app for real-world navigation.
+Shared trails are read from the top-level Firestore `trails` collection. A signed-in user can also create private trails under `users/{userId}/trails`; these are included only when that same user loads trail feeds. The creation form records trail details and route points selected by tapping the map. Each trail needs at least two valid points to draw a route; taps without valid coordinates are ignored, and the most recently added point can be undone.
+
+Configure Firestore security rules so only the authenticated owner can read and write documents under `users/{userId}/trails`. The app does not include or deploy Firestore rules, so verify the project's rules before storing private trails. Trail coordinates and waypoint positions must be verified before use for navigation. `src/data/dummyTrails.js` is illustrative sample data and is not read by app screens.

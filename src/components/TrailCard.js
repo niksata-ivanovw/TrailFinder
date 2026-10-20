@@ -10,7 +10,13 @@ export default function TrailCard({ trail, isFavorite, favoritePending, onToggle
     <View style={styles.card}>
       <Link href={`/trail/${trail.id}`} asChild>
         <Pressable>
-          <Image source={{ uri: trail.imageUrl }} style={styles.image} />
+          {trail.imageUrl ? (
+            <Image source={{ uri: trail.imageUrl }} style={styles.image} />
+          ) : (
+            <View style={[styles.image, styles.imagePlaceholder]}>
+              <Ionicons name="map-outline" size={32} color={colors.primary} />
+            </View>
+          )}
           <View style={styles.content}>
             <Text style={styles.title}>{trail.name}</Text>
             <Text style={styles.location}>{trail.location}</Text>

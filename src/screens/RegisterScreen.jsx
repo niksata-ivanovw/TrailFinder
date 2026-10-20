@@ -1,7 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { Alert, KeyboardAvoidingView, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { auth } from '../../firebaseConfig';
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 import { colors } from '@/theme';
@@ -49,16 +58,16 @@ export default function RegisterScreen() {
     setError('');
 
     try {
-      const { user } =await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const { user } = await createUserWithEmailAndPassword(auth, email.trim(), password);
       router.replace('/tabs');
 
       // await updateProfile(user, {
       // displayName: fullName.trim(),
       //   });
-      // TODO: Add user profile update to include full name after registration; swiping back can lead to authFlow 
+      // TODO: Add user profile update to include full name after registration; swiping back can lead to authFlow
     } catch (err) {
       const message = err?.message || 'Unable to create account. Please try again.';
-      setError(message); 
+      setError(message);
       //TODO replace firebase pop-up with custom alert
       Alert.alert('Registration failed', message);
     } finally {
@@ -67,12 +76,15 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.eyebrow}>Create account</Text>
-        <Text style={styles.title}>Join TrailFinder</Text>
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoidingView}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <View style={styles.card}>
+          <Text style={styles.eyebrow}>Create account</Text>
+          <Text style={styles.title}>Join TrailFinder</Text>
 
-        <KeyboardAvoidingView behavior="padding">
           <TextInput
             style={styles.input}
             placeholder="Full name"
@@ -107,22 +119,17 @@ export default function RegisterScreen() {
             value={confirmPassword}
             onChangeText={setConfirmPassword}
           />
-          {showError && (
-            <Text style={styles.passwordMismatch}>
-            Passwords do not match.
-            </Text>
-          )}
-          
-        </KeyboardAvoidingView>
+          {showError && <Text style={styles.passwordMismatch}>Passwords do not match.</Text>}
 
-        <Pressable style={styles.primaryButton} onPress={handleRegister}>
-          <Text style={styles.primaryButtonText}>Create account</Text>
-        </Pressable>
+          <Pressable style={styles.primaryButton} onPress={handleRegister}>
+            <Text style={styles.primaryButtonText}>Create account</Text>
+          </Pressable>
 
-        <Pressable style={styles.secondaryButton} onPress={() => router.back('/')}>
-          <Text style={styles.secondaryButtonText}>Already have an account?</Text>
-        </Pressable>
-      </View>
-    </View>
+          <Pressable style={styles.secondaryButton} onPress={() => router.back('/')}>
+            <Text style={styles.secondaryButtonText}>Already have an account?</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

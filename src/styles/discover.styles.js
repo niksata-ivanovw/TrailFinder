@@ -3,6 +3,7 @@ import { colors, spacing, typography } from '@/theme';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  keyboardAvoidingView: { flex: 1 },
   header: {
     padding: spacing.lg,
     backgroundColor: colors.surface,

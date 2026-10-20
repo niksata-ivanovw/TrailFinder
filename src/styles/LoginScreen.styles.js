@@ -3,11 +3,15 @@ import { colors, spacing, typography } from '@/theme';
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.authBackground,
     padding: spacing.xxl,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+    backgroundColor: colors.authBackground,
   },
   card: {
     width: '100%',

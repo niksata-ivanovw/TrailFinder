@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, TextInput, FlatList, RefreshControl } from 'react-native';
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import TrailCard from '@/components/TrailCard';
 import TrailFilterButton from '@/components/TrailFilterButton';
 import TrailFilterModal from '@/components/TrailFilterModal';
@@ -51,67 +59,72 @@ export default function DiscoverScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <View style={styles.header}>
-        <Text style={styles.pageTitle}>Discover</Text>
-        <View style={styles.searchRow}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search trails..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          <TrailFilterButton
-            count={countActiveTrailFilters(filters)}
-            onPress={() => setShowFilterModal(true)}
-          />
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.header}>
+          <Text style={styles.pageTitle}>Discover</Text>
+          <View style={styles.searchRow}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search trails..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            <TrailFilterButton
+              count={countActiveTrailFilters(filters)}
+              onPress={() => setShowFilterModal(true)}
+            />
+          </View>
+          {favoriteError ? <Text style={styles.favoriteError}>{favoriteError}</Text> : null}
         </View>
-        {favoriteError ? <Text style={styles.favoriteError}>{favoriteError}</Text> : null}
-      </View>
-      <TrailFilterModal
-        visible={showFilterModal}
-        filters={filters}
-        onClose={() => setShowFilterModal(false)}
-        onApply={(nextFilters) => {
-          setFilters(nextFilters);
-          setShowFilterModal(false);
-        }}
-      />
+        <TrailFilterModal
+          visible={showFilterModal}
+          filters={filters}
+          onClose={() => setShowFilterModal(false)}
+          onApply={(nextFilters) => {
+            setFilters(nextFilters);
+            setShowFilterModal(false);
+          }}
+        />
 
-      <FlatList
-        data={filteredTrails}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TrailCard
-            trail={item}
-            isFavorite={favoriteTrailIds.has(item.id)}
-            favoritePending={loadingFavorites || pendingTrailIds.has(item.id)}
-            onToggleFavorite={toggleFavorite}
-          />
-        )}
-        contentContainerStyle={[
-          styles.listContent,
-          filteredTrails.length === 0 && styles.emptyListContent,
-        ]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => loadTrails(true)} />
-        }
-        ListHeaderComponent={
-          error && trails.length > 0 ? (
-            <TrailQueryState error={error} onRetry={() => loadTrails()} />
-          ) : null
-        }
-        ListEmptyComponent={
-          <TrailQueryState
-            loading={loading}
-            error={trails.length === 0 ? error : null}
-            onRetry={() => loadTrails()}
-            emptyMessage={
-              trails.length === 0 ? 'No trails found.' : 'No trails match your filters.'
-            }
-          />
-        }
-      />
+        <FlatList
+          data={filteredTrails}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TrailCard
+              trail={item}
+              isFavorite={favoriteTrailIds.has(item.id)}
+              favoritePending={loadingFavorites || pendingTrailIds.has(item.id)}
+              onToggleFavorite={toggleFavorite}
+            />
+          )}
+          contentContainerStyle={[
+            styles.listContent,
+            filteredTrails.length === 0 && styles.emptyListContent,
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => loadTrails(true)} />
+          }
+          ListHeaderComponent={
+            error && trails.length > 0 ? (
+              <TrailQueryState error={error} onRetry={() => loadTrails()} />
+            ) : null
+          }
+          ListEmptyComponent={
+            <TrailQueryState
+              loading={loading}
+              error={trails.length === 0 ? error : null}
+              onRetry={() => loadTrails()}
+              emptyMessage={
+                trails.length === 0 ? 'No trails found.' : 'No trails match your filters.'
+              }
+            />
+          }
+        />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

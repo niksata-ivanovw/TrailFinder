@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { Alert, KeyboardAvoidingView, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { auth } from '../../firebaseConfig';
 import { colors } from '@/theme';
 import styles from '@/styles/LoginScreen.styles';
@@ -27,7 +36,7 @@ export default function LoginScreen() {
       router.replace('/tabs');
     } catch (err) {
       const message = err?.message || 'Unable to sign in. Please try again.';
-      setError(message); 
+      setError(message);
       //TODO replace firebase pop-up with custom alert
       Alert.alert('Login failed', message);
     } finally {
@@ -36,8 +45,11 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <KeyboardAvoidingView behavior="padding">
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoidingView}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
           <Text style={styles.eyebrow}>Welcome back</Text>
           <Text style={styles.title}>TrailFinder</Text>
@@ -63,7 +75,11 @@ export default function LoginScreen() {
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <Pressable style={[styles.primaryButton, loading && styles.primaryButtonDisabled]} onPress={handleLogin} disabled={loading}>
+          <Pressable
+            style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
             <Text style={styles.primaryButtonText}>{loading ? 'Logging in...' : 'Log in'}</Text>
           </Pressable>
 
@@ -71,7 +87,7 @@ export default function LoginScreen() {
             <Text style={styles.secondaryButtonText}>Create account</Text>
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
