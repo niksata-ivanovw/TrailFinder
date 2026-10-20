@@ -88,6 +88,10 @@ const styles = StyleSheet.create({
     fontSize: typography.caption,
     fontWeight: '700',
   },
+  filterButton: {
+    alignSelf: 'flex-start',
+    marginBottom: spacing.md,
+  },
   hikeCard: {
     flexDirection: 'row',
     alignItems: 'stretch',

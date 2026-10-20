@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
-import { Text, View, Modal, Pressable } from 'react-native';
+import { Text, View, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import TrailFilterButton from '@/components/TrailFilterButton';
+import TrailFilterModal from '@/components/TrailFilterModal';
 import TrailQueryState from '@/components/TrailQueryState';
 import FavoriteButton from '@/components/FavoriteButton';
 import { fetchTrails } from '@/data/trails';
 import { colors, spacing } from '@/theme';
 import styles from '@/styles/map.styles';
 import useFavorites from '@/hooks/useFavorites';
-import { Funnel } from 'lucide-react-native';
+import { countActiveTrailFilters, DEFAULT_TRAIL_FILTERS, filterTrails } from '@/utils/trailFilters';
 
 // improve highlighted trail UI
 
@@ -118,7 +120,7 @@ export default function MapTabScreen() {
   const [error, setError] = useState(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showTrailDetailsModal, setShowTrailDetailsModal] = useState(false);
-  const [activeDifficulty, setActiveDifficulty] = useState('All');
+  const [filters, setFilters] = useState({ ...DEFAULT_TRAIL_FILTERS });
   const [selectedTrailId, setSelectedTrailId] = useState(null);
 
   const loadTrails = useCallback(async () => {
@@ -148,25 +150,22 @@ export default function MapTabScreen() {
     () => (mappableTrails.length > 0 ? getInitialRegion(mappableTrails) : null),
     [mappableTrails]
   );
-  const trailsForDifficulty = useMemo(
-    () =>
-      activeDifficulty === 'All'
-        ? mappableTrails
-        : mappableTrails.filter((trail) => trail.difficulty === activeDifficulty),
-    [activeDifficulty, mappableTrails]
+  const filteredMappableTrails = useMemo(
+    () => filterTrails(mappableTrails, filters, favoriteTrailIds),
+    [favoriteTrailIds, filters, mappableTrails]
   );
   const trailsInRegion = useMemo(
     () =>
       visibleRegion
-        ? trailsForDifficulty.filter((trail) => trailIntersectsRegion(trail, visibleRegion))
-        : trailsForDifficulty,
-    [trailsForDifficulty, visibleRegion]
+        ? filteredMappableTrails.filter((trail) => trailIntersectsRegion(trail, visibleRegion))
+        : filteredMappableTrails,
+    [filteredMappableTrails, visibleRegion]
   );
   const selectedTrail = mappableTrails.find((trail) => trail.id === selectedTrailId);
   const selectedTrailCoordinates = selectedTrail?.coordinates.filter(isValidCoordinate) ?? [];
   const fallbackCoordinate = mappableTrails[0]?.coordinates.find(isValidCoordinate);
   const isSelectedTrailVisible = Boolean(
-    selectedTrail && (activeDifficulty === 'All' || selectedTrail.difficulty === activeDifficulty)
+    selectedTrail && filteredMappableTrails.some((trail) => trail.id === selectedTrail.id)
   );
 
   const highlightSelectedTrailHandler = (trailId, showDetails = true) => {
@@ -206,7 +205,7 @@ export default function MapTabScreen() {
       >
         {mappableTrails.map((trail) => {
           const coordinates = trail.coordinates.filter(isValidCoordinate);
-          const isVisible = activeDifficulty === 'All' || trail.difficulty === activeDifficulty;
+          const isVisible = filteredMappableTrails.some((item) => item.id === trail.id);
 
           return (
             <Polyline
@@ -267,58 +266,20 @@ export default function MapTabScreen() {
           <Text style={styles.regionHint}>Move the map to explore nearby trails.</Text>
         )}
       </View>
-      <Pressable
+      <TrailFilterButton
+        count={countActiveTrailFilters(filters)}
         style={[styles.filterButton, { bottom: insets.bottom + spacing.lg }]}
         onPress={() => setShowFilterModal(true)}
-      >
-        <Text style={styles.filterButtonText}>Filter</Text>
-        <Funnel size={20} color={colors.textOnPrimary} strokeWidth={2.5} />
-      </Pressable>
-
-      <Modal
+      />
+      <TrailFilterModal
         visible={showFilterModal}
-        animationType="slide"
-        transparent
-        statusBarTranslucent
-        onRequestClose={() => setShowFilterModal(false)}
-      >
-        <View style={styles.filterModalOverlay}>
-          <View style={styles.filterModalCard}>
-            <Text style={styles.filterModalText}>Difficulty:</Text>
-            <View style={[styles.filterRow, {}]}>
-              {['All', 'Beginner', 'Intermediate', 'Expert'].map((diff) => (
-                <Pressable
-                  key={diff}
-                  style={({ pressed }) => [
-                    {
-                      backgroundColor: colors.surface,
-                      padding: spacing.sm,
-                      borderRadius: spacing.sm,
-                      margin: spacing.xs,
-                    },
-                    pressed && { opacity: 0.6 },
-                    diff === 'All'
-                      ? { borderWidth: 2, borderColor: colors.black }
-                      : diff === 'Beginner'
-                        ? { borderWidth: 2, borderColor: colors.mapRouteBeginner }
-                        : diff === 'Intermediate'
-                          ? { borderWidth: 2, borderColor: colors.mapRouteIntermediate }
-                          : diff === 'Expert'
-                            ? { borderWidth: 2, borderColor: colors.mapRouteExpert }
-                            : {},
-                  ]}
-                  onPress={() => setActiveDifficulty(diff)}
-                >
-                  <Text style={{ fontWeight: '400' }}>{diff}</Text>
-                </Pressable>
-              ))}
-            </View>
-            <Pressable style={styles.filterModalClose} onPress={() => setShowFilterModal(false)}>
-              <Text style={styles.filterModalCloseText}>Close</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+        filters={filters}
+        onClose={() => setShowFilterModal(false)}
+        onApply={(nextFilters) => {
+          setFilters(nextFilters);
+          setShowFilterModal(false);
+        }}
+      />
 
       {showTrailDetailsModal && (
         <View

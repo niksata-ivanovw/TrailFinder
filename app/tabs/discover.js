@@ -1,20 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, TextInput, FlatList, Pressable, Text, RefreshControl } from 'react-native';
+import { View, Text, TextInput, FlatList, RefreshControl } from 'react-native';
 import TrailCard from '@/components/TrailCard';
+import TrailFilterButton from '@/components/TrailFilterButton';
+import TrailFilterModal from '@/components/TrailFilterModal';
 import TrailQueryState from '@/components/TrailQueryState';
 import { fetchTrails } from '@/data/trails';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '@/styles/discover.styles';
 import useFavorites from '@/hooks/useFavorites';
-
-const DIFFICULTIES = ['All', 'Beginner', 'Intermediate', 'Expert'];
+import { countActiveTrailFilters, DEFAULT_TRAIL_FILTERS, filterTrails } from '@/utils/trailFilters';
 
 export default function DiscoverScreen() {
   const { favoriteTrailIds, pendingTrailIds, loadingFavorites, favoriteError, toggleFavorite } =
     useFavorites();
   const [trails, setTrails] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [filters, setFilters] = useState({ ...DEFAULT_TRAIL_FILTERS });
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -41,37 +43,39 @@ export default function DiscoverScreen() {
     loadTrails();
   }, [loadTrails]);
 
-  const filteredTrails = trails.filter((trail) => {
-    const matchesSearch = trail.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = activeFilter === 'All' || trail.difficulty === activeFilter;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredTrails = filterTrails(
+    trails.filter((trail) => trail.name.toLowerCase().includes(searchQuery.toLowerCase())),
+    filters,
+    favoriteTrailIds
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search trails..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-
-        <View style={styles.filterRow}>
-          {DIFFICULTIES.map((diff) => (
-            <Pressable
-              key={diff}
-              style={[styles.filterChip, activeFilter === diff && styles.activeChip]}
-              onPress={() => setActiveFilter(diff)}
-            >
-              <Text style={[styles.filterText, activeFilter === diff && styles.activeText]}>
-                {diff}
-              </Text>
-            </Pressable>
-          ))}
+        <Text style={styles.pageTitle}>Discover</Text>
+        <View style={styles.searchRow}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search trails..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <TrailFilterButton
+            count={countActiveTrailFilters(filters)}
+            onPress={() => setShowFilterModal(true)}
+          />
         </View>
         {favoriteError ? <Text style={styles.favoriteError}>{favoriteError}</Text> : null}
       </View>
+      <TrailFilterModal
+        visible={showFilterModal}
+        filters={filters}
+        onClose={() => setShowFilterModal(false)}
+        onApply={(nextFilters) => {
+          setFilters(nextFilters);
+          setShowFilterModal(false);
+        }}
+      />
 
       <FlatList
         data={filteredTrails}

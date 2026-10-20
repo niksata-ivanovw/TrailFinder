@@ -13,7 +13,10 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth } from '../../firebaseConfig';
+import TrailFilterButton from '@/components/TrailFilterButton';
+import TrailFilterModal from '@/components/TrailFilterModal';
 import { fetchCompletedHikes, removeCompletedHike } from '@/data/hikes';
+import { countActiveTrailFilters, DEFAULT_TRAIL_FILTERS, filterTrails } from '@/utils/trailFilters';
 import { colors } from '@/theme';
 import styles from '@/styles/myhikes.styles';
 
@@ -41,6 +44,8 @@ export default function MyHikesScreen() {
   const router = useRouter();
   const [hikes, setHikes] = useState([]);
   const [sortNewestFirst, setSortNewestFirst] = useState(true);
+  const [filters, setFilters] = useState({ ...DEFAULT_TRAIL_FILTERS });
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -80,7 +85,8 @@ export default function MyHikesScreen() {
     (total, hike) => total + (Number.isFinite(hike.distanceMiles) ? hike.distanceMiles : 0),
     0
   );
-  const sortedHikes = [...hikes].sort((firstHike, secondHike) => {
+  const filteredHikes = filterTrails(hikes, filters);
+  const sortedHikes = [...filteredHikes].sort((firstHike, secondHike) => {
     const firstDate = getCompletedAtMillis(firstHike.completedAt);
     const secondDate = getCompletedAtMillis(secondHike.completedAt);
     if (firstDate == null) return secondDate == null ? 0 : 1;
@@ -161,7 +167,10 @@ export default function MyHikesScreen() {
       <FlatList
         data={sortedHikes}
         keyExtractor={(hike) => hike.id}
-        contentContainerStyle={[styles.listContent, hikes.length === 0 && styles.emptyListContent]}
+        contentContainerStyle={[
+          styles.listContent,
+          filteredHikes.length === 0 && styles.emptyListContent,
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -186,26 +195,36 @@ export default function MyHikesScreen() {
               </View>
             </View>
             {hikes.length > 0 ? (
-              <View style={styles.sortRow}>
-                <Text style={styles.sectionTitle}>Hike history</Text>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Sort by date added, ${
-                    sortNewestFirst ? 'newest first' : 'oldest first'
-                  }. Tap to reverse order.`}
-                  onPress={() => setSortNewestFirst((isNewestFirst) => !isNewestFirst)}
-                  style={({ pressed }) => [styles.sortButton, pressed && styles.sortButtonPressed]}
-                >
-                  <Ionicons
-                    name={sortNewestFirst ? 'arrow-down' : 'arrow-up'}
-                    size={15}
-                    color={colors.primary}
-                  />
-                  <Text style={styles.sortButtonText}>
-                    Date added · {sortNewestFirst ? 'Newest' : 'Oldest'}
-                  </Text>
-                </Pressable>
-              </View>
+              <>
+                <View style={styles.sortRow}>
+                  <Text style={styles.sectionTitle}>Hike history</Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Sort by date added, ${
+                      sortNewestFirst ? 'newest first' : 'oldest first'
+                    }. Tap to reverse order.`}
+                    onPress={() => setSortNewestFirst((isNewestFirst) => !isNewestFirst)}
+                    style={({ pressed }) => [
+                      styles.sortButton,
+                      pressed && styles.sortButtonPressed,
+                    ]}
+                  >
+                    <Ionicons
+                      name={sortNewestFirst ? 'arrow-down' : 'arrow-up'}
+                      size={15}
+                      color={colors.primary}
+                    />
+                    <Text style={styles.sortButtonText}>
+                      Date added · {sortNewestFirst ? 'Newest' : 'Oldest'}
+                    </Text>
+                  </Pressable>
+                </View>
+                <TrailFilterButton
+                  count={countActiveTrailFilters(filters, false)}
+                  onPress={() => setShowFilterModal(true)}
+                  style={styles.filterButton}
+                />
+              </>
             ) : null}
             {error ? (
               <View style={styles.errorCard}>
@@ -275,7 +294,14 @@ export default function MyHikesScreen() {
               <ActivityIndicator size="large" color={colors.primary} />
               <Text style={styles.emptyMessage}>Loading your hikes...</Text>
             </View>
-          ) : error ? null : (
+          ) : error ? null : hikes.length > 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>No hikes match these filters</Text>
+              <Text style={styles.emptyMessage}>
+                Adjust or reset the filters to see your hikes.
+              </Text>
+            </View>
+          ) : (
             <View style={styles.emptyState}>
               <View style={styles.emptyIcon}>
                 <Ionicons name="footsteps-outline" size={32} color={colors.primary} />
@@ -294,6 +320,16 @@ export default function MyHikesScreen() {
             </View>
           )
         }
+      />
+      <TrailFilterModal
+        visible={showFilterModal}
+        filters={filters}
+        includeFavoriteStatus={false}
+        onClose={() => setShowFilterModal(false)}
+        onApply={(nextFilters) => {
+          setFilters(nextFilters);
+          setShowFilterModal(false);
+        }}
       />
     </SafeAreaView>
   );

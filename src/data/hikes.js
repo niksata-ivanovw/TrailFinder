@@ -28,6 +28,7 @@ export async function logCompletedHike(userId, trail) {
     location: trail.location ?? '',
     difficulty: trail.difficulty ?? '',
     distanceMiles: Number.isFinite(trail.distanceMiles) ? trail.distanceMiles : null,
+    elevationGainFt: Number.isFinite(trail.elevationGainFt) ? trail.elevationGainFt : null,
     imageUrl: trail.imageUrl ?? '',
     completedAt: serverTimestamp(),
   });
