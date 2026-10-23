@@ -15,6 +15,7 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
 - User-specific Firestore bookmarks, available from trail cards, map details, trail details, and the Saved tab. Saved includes search, filters, a saved-trail count, and pull-to-refresh.
 - Saved trails are cached per signed-in user on the device, including route coordinates and waypoints for opening saved trail details offline.
 - A My Hikes history where users can log the same trail multiple times with optional notes and a 1–5 star rating, edit each entry, remove individual entries, sort by date added, and filter by trail attributes.
+- Profile activity stats for logged hikes, distinct trails hiked, total recorded distance, and average hike rating.
 - Keyboard-aware forms for login, registration, trail creation, trail search and filters, and hike notes.
 - Firestore-backed trail detail maps with validated route lines and waypoint markers, plus the user location when permission is granted.
 - Profile details, shortcuts to Saved and Discover, and sign-out with confirmation.
@@ -93,7 +94,7 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
   - [x] Cache saved trails locally for offline access.
 - [ ] **Profile Screen**
   - [x] Display account details, links to Saved and Discover, and sign-out confirmation.
-  - [ ] Display user activity stats.
+  - [x] Display user activity stats.
 
 ## Setup
 

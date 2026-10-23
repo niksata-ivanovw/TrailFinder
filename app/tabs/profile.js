@@ -1,29 +1,69 @@
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth } from '../../firebaseConfig';
+import { fetchCompletedHikes } from '@/data/hikes';
 import { colors } from '@/theme';
 import styles from '@/styles/profile.styles';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const [activityStats, setActivityStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [statsError, setStatsError] = useState('');
   const [signingOut, setSigningOut] = useState(false);
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
   const [error, setError] = useState('');
   const user = auth.currentUser;
   const displayName = user?.displayName?.trim() || 'Trail explorer';
-  const initial = (user?.displayName?.trim() || user?.email || 'T')
-    .charAt(0)
-    .toUpperCase();
+  const initial = (user?.displayName?.trim() || user?.email || 'T').charAt(0).toUpperCase();
+
+  const loadActivityStats = useCallback(async () => {
+    if (!user?.uid) {
+      setActivityStats(null);
+      setLoadingStats(false);
+      setStatsError('Sign in to view your activity stats.');
+      return;
+    }
+
+    setLoadingStats(true);
+    setStatsError('');
+    try {
+      const hikes = await fetchCompletedHikes(user.uid);
+      const ratedHikes = hikes.filter(
+        (hike) => Number.isInteger(hike.rating) && hike.rating >= 1 && hike.rating <= 5
+      );
+      const totalDistanceMiles = hikes.reduce(
+        (total, hike) => total + (Number.isFinite(hike.distanceMiles) ? hike.distanceMiles : 0),
+        0
+      );
+
+      setActivityStats({
+        hikeCount: hikes.length,
+        trailCount: new Set(hikes.map((hike) => hike.trailId).filter(Boolean)).size,
+        totalDistanceMiles,
+        averageRating:
+          ratedHikes.length > 0
+            ? ratedHikes.reduce((total, hike) => total + hike.rating, 0) / ratedHikes.length
+            : null,
+      });
+    } catch (loadError) {
+      setStatsError(
+        loadError instanceof Error ? loadError.message : 'Unable to load your activity stats.'
+      );
+    } finally {
+      setLoadingStats(false);
+    }
+  }, [user?.uid]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadActivityStats();
+    }, [loadActivityStats])
+  );
 
   const handleSignOut = async () => {
     setConfirmingSignOut(false);
@@ -73,10 +113,7 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.pageTitle}>Your profile</Text>
 
         <View style={styles.profileCard}>
@@ -94,6 +131,61 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        <Text style={styles.sectionTitle}>Your activity</Text>
+        <View style={styles.activityStatsCard}>
+          {loadingStats && !activityStats ? (
+            <ActivityIndicator color={colors.primary} />
+          ) : statsError && !activityStats ? (
+            <View style={styles.statsErrorContainer}>
+              <Text style={styles.statsErrorText}>{statsError}</Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={loadActivityStats}
+                style={styles.statsRetryButton}
+              >
+                <Text style={styles.statsRetryText}>Try again</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <>
+              <ActivityStat
+                icon="footsteps-outline"
+                label="HIKES LOGGED"
+                value={activityStats?.hikeCount ?? 0}
+              />
+              <ActivityStat
+                icon="map-outline"
+                label="TRAILS HIKED"
+                value={activityStats?.trailCount ?? 0}
+              />
+              <ActivityStat
+                icon="navigate-outline"
+                label="MILES HIKED"
+                value={(activityStats?.totalDistanceMiles ?? 0).toFixed(1)}
+              />
+              <ActivityStat
+                icon="star-outline"
+                label="AVERAGE RATING"
+                value={
+                  activityStats?.averageRating == null
+                    ? '—'
+                    : `${activityStats.averageRating.toFixed(1)}/5`
+                }
+              />
+            </>
+          )}
+        </View>
+        {statsError && activityStats ? (
+          <View style={styles.statsRefreshErrorContainer}>
+            <Text style={styles.statsRefreshError}>
+              {statsError} Showing your last loaded stats.
+            </Text>
+            <Pressable accessibilityRole="button" onPress={loadActivityStats}>
+              <Text style={styles.statsRetryText}>Try again</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         <Text style={styles.sectionTitle}>Your TrailFinder</Text>
         <View style={styles.shortcutsCard}>
@@ -127,19 +219,13 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.accountDetails}>
               <Text style={styles.accountLabel}>Email address</Text>
-              <Text style={styles.accountValue}>
-                {user?.email || 'Not available'}
-              </Text>
+              <Text style={styles.accountValue}>{user?.email || 'Not available'}</Text>
             </View>
           </View>
           <View style={styles.divider} />
           <View style={styles.accountRow}>
             <View style={styles.accountIcon}>
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={18}
-                color={colors.primary}
-              />
+              <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
             </View>
             <View style={styles.accountDetails}>
               <Text style={styles.accountLabel}>Email status</Text>
@@ -164,12 +250,22 @@ export default function ProfileScreen() {
           disabled={signingOut}
         >
           <Ionicons name="log-out-outline" size={20} color={colors.danger} />
-          <Text style={styles.signOutText}>
-            {signingOut ? 'Signing out...' : 'Sign out'}
-          </Text>
+          <Text style={styles.signOutText}>{signingOut ? 'Signing out...' : 'Sign out'}</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function ActivityStat({ icon, label, value }) {
+  return (
+    <View style={styles.activityStat}>
+      <View style={styles.activityStatIcon}>
+        <Ionicons name={icon} size={18} color={colors.primary} />
+      </View>
+      <Text style={styles.activityStatValue}>{value}</Text>
+      <Text style={styles.activityStatLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -177,10 +273,7 @@ function ProfileLink({ icon, title, subtitle, onPress }) {
   return (
     <Pressable
       accessibilityRole="button"
-      style={({ pressed }) => [
-        styles.shortcut,
-        pressed && styles.shortcutPressed,
-      ]}
+      style={({ pressed }) => [styles.shortcut, pressed && styles.shortcutPressed]}
       onPress={onPress}
     >
       <View style={styles.shortcutIcon}>
