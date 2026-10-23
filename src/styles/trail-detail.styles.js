@@ -36,6 +36,11 @@ const styles = StyleSheet.create({
     color: colors.danger,
     fontSize: typography.caption,
   },
+  offlineNotice: {
+    marginTop: spacing.xs,
+    color: colors.textSecondary,
+    fontSize: typography.caption,
+  },
   stats: { fontSize: typography.small, color: colors.textSecondary },
   description: { marginTop: spacing.sm, fontSize: typography.small, color: colors.textSecondary },
   logHikeButton: {

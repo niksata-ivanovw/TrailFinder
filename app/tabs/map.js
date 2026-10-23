@@ -13,8 +13,6 @@ import styles from '@/styles/map.styles';
 import useFavorites from '@/hooks/useFavorites';
 import { countActiveTrailFilters, DEFAULT_TRAIL_FILTERS, filterTrails } from '@/utils/trailFilters';
 
-// improve highlighted trail UI
-
 function polylineColorHandler(difficulty) {
   switch (difficulty) {
     case 'Beginner':

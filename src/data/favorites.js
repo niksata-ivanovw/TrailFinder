@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
 function getUserFavoritesCollection(userId) {
@@ -10,10 +10,20 @@ function getUserFavoritesCollection(userId) {
 
 export async function fetchFavoriteTrails(userId) {
   const snapshot = await getDocs(getUserFavoritesCollection(userId));
-  return snapshot.docs.map((favoriteDoc) => ({
-    ...favoriteDoc.data(),
-    id: favoriteDoc.id,
-  }));
+  return Promise.all(
+    snapshot.docs.map(async (favoriteDoc) => {
+      const favorite = { ...favoriteDoc.data(), id: favoriteDoc.id };
+      const sharedTrail = await getDoc(doc(db, 'trails', favoriteDoc.id));
+      if (sharedTrail.exists()) {
+        return { ...favorite, ...sharedTrail.data(), id: favoriteDoc.id };
+      }
+
+      const privateTrail = await getDoc(doc(db, 'users', userId, 'trails', favoriteDoc.id));
+      return privateTrail.exists()
+        ? { ...favorite, ...privateTrail.data(), id: favoriteDoc.id }
+        : favorite;
+    })
+  );
 }
 
 export async function saveFavoriteTrail(userId, trail) {
@@ -28,6 +38,8 @@ export async function saveFavoriteTrail(userId, trail) {
     distanceMiles: Number.isFinite(trail.distanceMiles) ? trail.distanceMiles : null,
     elevationGainFt: Number.isFinite(trail.elevationGainFt) ? trail.elevationGainFt : null,
     imageUrl: trail.imageUrl ?? '',
+    surfaceType: trail.surfaceType ?? '',
+    description: trail.description ?? '',
   });
 }
 

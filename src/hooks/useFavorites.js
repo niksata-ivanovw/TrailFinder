@@ -2,6 +2,12 @@ import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { auth } from '../../firebaseConfig';
 import { fetchFavoriteTrails, removeFavoriteTrail, saveFavoriteTrail } from '@/data/favorites';
+import {
+  cacheFavoriteTrails,
+  getCachedFavoriteTrails,
+  removeCachedFavoriteTrail,
+  updateCachedFavoriteTrail,
+} from '@/data/offlineTrailCache';
 
 export default function useFavorites() {
   const [favoriteTrails, setFavoriteTrails] = useState([]);
@@ -27,18 +33,66 @@ export default function useFavorites() {
 
         setLoadingFavorites(true);
         setFavoriteError(null);
+        let cachedTrails = [];
+        try {
+          cachedTrails = await getCachedFavoriteTrails(userId);
+          if (isActive && cachedTrails.length > 0) {
+            setFavoriteTrails(cachedTrails);
+            setFavoriteTrailIds(new Set(cachedTrails.map((trail) => trail.id)));
+          }
+        } catch (cacheError) {
+          if (isActive) {
+            setFavoriteError(
+              cacheError instanceof Error
+                ? cacheError.message
+                : 'Unable to read your saved trail cache.'
+            );
+          }
+        }
+
         try {
           const favorites = await fetchFavoriteTrails(userId);
+          const cachedTrailsById = new Map(cachedTrails.map((trail) => [trail.id, trail]));
+          const favoritesWithCachedRoutes = favorites.map((favorite) => {
+            const cachedTrail = cachedTrailsById.get(favorite.id);
+            if (!cachedTrail) return favorite;
+            return {
+              ...cachedTrail,
+              ...favorite,
+              coordinates:
+                Array.isArray(favorite.coordinates) && favorite.coordinates.length > 0
+                  ? favorite.coordinates
+                  : cachedTrail.coordinates,
+              waypoints:
+                Array.isArray(favorite.waypoints) && favorite.waypoints.length > 0
+                  ? favorite.waypoints
+                  : cachedTrail.waypoints,
+            };
+          });
           if (isActive) {
-            setFavoriteTrails(favorites);
-            setFavoriteTrailIds(new Set(favorites.map((trail) => trail.id)));
+            setFavoriteTrails(favoritesWithCachedRoutes);
+            setFavoriteTrailIds(new Set(favoritesWithCachedRoutes.map((trail) => trail.id)));
+          }
+          try {
+            await cacheFavoriteTrails(userId, favoritesWithCachedRoutes);
+            if (isActive) setFavoriteError(null);
+          } catch (cacheError) {
+            if (isActive) {
+              setFavoriteError(
+                `Saved trails loaded, but the offline cache could not be updated: ${
+                  cacheError instanceof Error ? cacheError.message : 'Unknown cache error.'
+                }`
+              );
+            }
           }
         } catch (loadError) {
           if (isActive) {
             setFavoriteError(
-              loadError instanceof Error
-                ? loadError.message
-                : 'Unable to load your favorite trails.'
+              cachedTrails.length > 0
+                ? 'Unable to refresh saved trails. Showing cached copies from this device.'
+                : loadError instanceof Error
+                  ? loadError.message
+                  : 'Unable to load your favorite trails.'
             );
           }
         } finally {
@@ -86,6 +140,15 @@ export default function useFavorites() {
             nextIds.delete(trail.id);
             return nextIds;
           });
+          try {
+            await removeCachedFavoriteTrail(userId, trail.id);
+          } catch (cacheError) {
+            setFavoriteError(
+              `Favorite removed online, but the offline cache could not be updated: ${
+                cacheError instanceof Error ? cacheError.message : 'Unknown cache error.'
+              }`
+            );
+          }
         } else {
           await saveFavoriteTrail(userId, trail);
           setFavoriteTrails((currentTrails) => [
@@ -93,6 +156,15 @@ export default function useFavorites() {
             ...currentTrails.filter((favorite) => favorite.id !== trail.id),
           ]);
           setFavoriteTrailIds((currentIds) => new Set(currentIds).add(trail.id));
+          try {
+            await updateCachedFavoriteTrail(userId, trail);
+          } catch (cacheError) {
+            setFavoriteError(
+              `Favorite saved online, but the offline cache could not be updated: ${
+                cacheError instanceof Error ? cacheError.message : 'Unknown cache error.'
+              }`
+            );
+          }
         }
       } catch (toggleError) {
         setFavoriteError(

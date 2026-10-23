@@ -13,6 +13,7 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
 - Discover trail cards with name search, bookmark toggles, loading/error states, and pull-to-refresh.
 - Private trail creation from Profile, with trail details and routes plotted by tapping map points. Created trails appear only in that user's trail feeds.
 - User-specific Firestore bookmarks, available from trail cards, map details, trail details, and the Saved tab. Saved includes search, filters, a saved-trail count, and pull-to-refresh.
+- Saved trails are cached per signed-in user on the device, including route coordinates and waypoints for opening saved trail details offline.
 - A My Hikes history where users can log the same trail multiple times with optional notes and a 1–5 star rating, edit each entry, remove individual entries, sort by date added, and filter by trail attributes.
 - Keyboard-aware forms for login, registration, trail creation, trail search and filters, and hike notes.
 - Firestore-backed trail detail maps with validated route lines and waypoint markers, plus the user location when permission is granted.
@@ -23,7 +24,7 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
 
 - Firestore trail coordinates and waypoint positions must be verified before use for navigation. `src/data/dummyTrails.js` is retained only as illustrative sample data, and app screens do not read it.
 - Elevation gains can be estimates; route difficulty, surface, access rights, connectivity, and current passability are not independently verified.
-- Saved trails and hike history require a signed-in user and working Firestore access. Offline maps are not implemented.
+- Favorites and hike history require a signed-in user. Saved trail cards and route details use the local cache when Firestore is unavailable; map tiles and remote images are not cached, and offline bookmark changes are not synchronized.
 - Private trail access depends on Firestore security rules restricting `users/{userId}/trails` to the authenticated owner. The app queries only the signed-in user's subcollection; client-side filtering alone is not a security boundary.
 - Featured trail images are remote Unsplash URLs and require an internet connection.
 - OpenStreetMap-derived route data requires attribution and is subject to the ODbL. Verify that attribution is visible wherever this route data is shown.
@@ -74,50 +75,25 @@ TrailFinder is an Expo and React Native app for discovering, saving, and trackin
 
 ---
 
-### Phase 2: Inputs Beyond Text & Advanced Form UX
-
-- [ ] **Update Log Hike Form Controls**
-  - [ ] **Slider**: Add difficulty rating input (1–5 scale).
-  - [ ] **DateTimePicker**: Add hike date selection component.
-  - [ ] **Switch**: Add "Dog-Friendly" toggle.
-- [ ] **Form Protection & Layout UX**
-  - [x] Ensure form components are properly wrapped in `KeyboardAvoidingView` to maintain input visibility.
-  - [x] Display password-strength feedback during Registration.
-  - [ ] Enforce password strength / multi-rule validation before Registration.
-
----
-
-### Phase 3: Native Device Capabilities
+### Phase 2: Native Device Capabilities
 
 - [x] **Location and Maps**
   - [x] Use MapView to plot routes for private trails.
   - [x] Use Expo Location to request the user's location on trail details.
-- [ ] **Additional Native Functionality**
-  - [ ] **Option A (Sensors)**: Integrate `expo-pedometer` for real-time step tracking during hikes.
-  - [ ] **Option B (Camera)**: Integrate `expo-image-picker` allowing users to capture and attach trail photos to logs.
 
 ---
 
-### Phase 4: Bookmarks & Profile
+### Phase 3: Bookmarks & Profile
 
 - [x] **Cloud Bookmarks**
   - [x] Save favorite trails in each signed-in user's Firestore favorites collection.
   - [x] Add bookmark toggles to Discover cards, Map trail details, and the full trail page.
   - [x] Build Saved with search, filters, and pull-to-refresh.
-- [ ] **Offline Caching**
-  - [ ] Cache saved trails locally for offline access.
+- [x] **Offline Caching**
+  - [x] Cache saved trails locally for offline access.
 - [ ] **Profile Screen**
   - [x] Display account details, links to Saved and Discover, and sign-out confirmation.
   - [ ] Display user activity stats.
-
----
-
-### Phase 5: Release Build & Project Finalization
-
-- [ ] **EAS Build**
-  - [ ] Build the Android package (`.apk`) using EAS (`eas build -p android --profile preview`).
-- [ ] **Documentation & Requirements Verification**
-  - [ ] Complete `README.md` with setup instructions, functional guide, and the prominent link to the downloadable `.apk`.
 
 ## Setup
 
@@ -236,6 +212,7 @@ src/
   components/                Shared UI, trail cards, and query-state components
   data/trails.js              Shared and per-user Firestore trail queries and private trail creation
   data/favorites.js           Per-user Firestore bookmarks
+  data/offlineTrailCache.js   Per-user local cache of saved trail details and routes
   data/hikes.js               Per-user completed-hike history
   components/TrailFilterModal.js
                               Shared difficulty, distance, elevation, location, and saved filters

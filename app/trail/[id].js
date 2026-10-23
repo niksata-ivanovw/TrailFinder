@@ -8,6 +8,7 @@ import FavoriteButton from '@/components/FavoriteButton';
 import HikeLogModal from '@/components/HikeLogModal';
 import { fetchCompletedHikes, logCompletedHike, removeCompletedHike } from '@/data/hikes';
 import { fetchTrail } from '@/data/trails';
+import { getCachedFavoriteTrails } from '@/data/offlineTrailCache';
 import { colors } from '@/theme';
 import styles from '@/styles/trail-detail.styles';
 import useFavorites from '@/hooks/useFavorites';
@@ -33,6 +34,7 @@ export default function TrailDetailScreen() {
   const [trail, setTrail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [offlineNotice, setOfflineNotice] = useState(null);
   const [hasLocationPermission, setHasLocationPermission] = useState(false);
   const [loggingHike, setLoggingHike] = useState(false);
   const [showHikeLogModal, setShowHikeLogModal] = useState(false);
@@ -50,8 +52,29 @@ export default function TrailDetailScreen() {
 
     setLoading(true);
     setError(null);
+    setOfflineNotice(null);
     try {
-      const fetchedTrail = await fetchTrail(trailId);
+      let fetchedTrail;
+      let remoteLoadError;
+      try {
+        fetchedTrail = await fetchTrail(trailId);
+      } catch (loadError) {
+        remoteLoadError = loadError;
+      }
+
+      if (!fetchedTrail) {
+        const userId = auth.currentUser?.uid;
+        if (userId) {
+          const cachedTrails = await getCachedFavoriteTrails(userId);
+          fetchedTrail = cachedTrails.find((cachedTrail) => cachedTrail.id === trailId);
+        }
+        if (!fetchedTrail && remoteLoadError) throw remoteLoadError;
+        if (fetchedTrail) {
+          setOfflineNotice(
+            'Showing the saved offline copy. Map tiles may need an internet connection.'
+          );
+        }
+      }
       if (
         Array.isArray(fetchedTrail?.waypoints) &&
         fetchedTrail.waypoints.some((waypoint) => !isValidCoordinate(waypoint))
@@ -61,6 +84,7 @@ export default function TrailDetailScreen() {
         );
       }
       setTrail(fetchedTrail);
+      setError(null);
       const userId = auth.currentUser?.uid;
       if (userId) {
         try {
@@ -215,6 +239,7 @@ export default function TrailDetailScreen() {
             onToggle={toggleFavorite}
           />
         </View>
+        {offlineNotice ? <Text style={styles.offlineNotice}>{offlineNotice}</Text> : null}
         {favoriteError ? <Text style={styles.favoriteError}>{favoriteError}</Text> : null}
         <Text style={styles.stats}>
           {trail.difficulty} • {trail.distanceMiles} mi
